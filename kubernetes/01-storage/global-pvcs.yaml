@@ -1,0 +1,91 @@
+# kubernetes/01-storage/global-pvcs.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: homelab-media-pvc # Este PVC será usado por Plex, Jellyfin, Radarr, Sonarr, etc.
+  namespace: homelab # Debe estar en el mismo namespace que los pods que lo usarán
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Ti # Solicita el tamaño. Debe ser <= a la capacidad del PV que quieres que se vincule.
+  storageClassName: homelab-hostpath # Pide un PV con esta clase de almacenamiento
+  # selector: # Opcional: Si tienes múltiples PVs con la misma storageClassName y capacidad
+  #   matchLabels: # puedes usar un selector para ser más específico.
+  #     content: media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: homelab-postgres-data-pvc
+  namespace: homelab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: homelab-hostpath
+  # selector:
+  #   matchLabels:
+  #     content: database-postgres
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: homelab-mongo-data-pvc
+  namespace: homelab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: homelab-hostpath
+  # selector:
+  #   matchLabels:
+  #     content: database-mongo
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: homelab-registry-data-pvc
+  namespace: homelab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: homelab-hostpath
+  # selector:
+  #   matchLabels:
+  #     content: docker-registry
+# ---
+# Si creaste PVs para monitoreo:
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: homelab-prometheus-data-pvc
+#   namespace: monitoring # O el namespace donde despliegues Prometheus
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 50Gi
+#   storageClassName: homelab-hostpath
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: homelab-grafana-data-pvc
+#   namespace: monitoring # O el namespace donde despliegues Grafana
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 5Gi
+#   storageClassName: homelab-hostpath

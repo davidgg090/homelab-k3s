@@ -1,0 +1,106 @@
+# kubernetes/01-storage/hostpath-pvs.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-media-pv # Nombre único para este PV
+  labels: # Etiquetas para ayudar a seleccionar este PV
+    type: hostpath
+    content: media
+spec:
+  capacity:
+    storage: 1Ti # Ajusta al tamaño REAL de tu partición de medios en el USB (ej. 1.8T)
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce # Puede ser montado como lectura-escritura por un solo nodo. Para K3s de un solo nodo, esto es lo común.
+                    # Si tuvieras múltiples nodos accediendo al mismo almacenamiento de red (NFS), usarías ReadWriteMany.
+  persistentVolumeReclaimPolicy: Retain # IMPORTANTE: Si borras el PVC, el PV y sus datos NO se borran. Debes borrar el PV manualmente si quieres liberar los datos.
+  storageClassName: homelab-hostpath # Un nombre de clase de almacenamiento personalizado para que los PVCs puedan solicitar específicamente este tipo de PV.
+  hostPath:
+    path: "/mnt/usbmedia" # La ruta en tu servidor Mini PC donde está montado el disco USB
+    type: Directory # Asegura que la ruta es un directorio
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-postgres-data-pv
+  labels:
+    type: hostpath
+    content: database-postgres
+spec:
+  capacity:
+    storage: 20Gi # Ajusta según tus necesidades para PostgreSQL
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath # Puede ser la misma clase o una diferente si quieres más granularidad
+  hostPath:
+    path: "/mnt/homelab_config/databases/postgresql"
+    type: DirectoryOrCreate # K3s intentará crear el directorio si no existe (aunque ya lo creamos manualmente)
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-mongo-data-pv
+  labels:
+    type: hostpath
+    content: database-mongo
+spec:
+  capacity:
+    storage: 20Gi # Ajusta según tus necesidades para MongoDB
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/homelab_config/databases/mongodb"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-registry-data-pv
+  labels:
+    type: hostpath
+    content: docker-registry
+spec:
+  capacity:
+    storage: 30Gi # Ajusta según cuántas imágenes Docker planeas almacenar
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/homelab_config/registry-data"
+    type: DirectoryOrCreate
+# ---
+# Si decidiste usar hostPath para datos de monitoreo, añádelos aquí también:
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: homelab-prometheus-data-pv
+# spec:
+#   capacity:
+#     storage: 50Gi # Ajusta
+#   volumeMode: Filesystem
+#   accessModes:
+#     - ReadWriteOnce
+#   persistentVolumeReclaimPolicy: Retain
+#   storageClassName: homelab-hostpath
+#   hostPath:
+#     path: "/mnt/homelab_config/monitoring/prometheus-data"
+#     type: DirectoryOrCreate
+# ---
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: homelab-grafana-data-pv
+# spec:
+#   capacity:
+#     storage: 5Gi # Ajusta
+#   # ... (resto similar a prometheus)
+#   hostPath:
+#     path: "/mnt/homelab_config/monitoring/grafana-data"
+#     type: DirectoryOrCreate
