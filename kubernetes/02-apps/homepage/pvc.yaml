@@ -1,0 +1,15 @@
+# kubernetes/02-apps/homepage/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: homepage-config-pvc
+  namespace: homelab # En tu namespace homelab
+  labels:
+    app.kubernetes.io/name: homepage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi # La configuración de Homepage es pequeña, 1Gi es más que suficiente
+  storageClassName: local-path # Usará el provisionador por defecto de K3s

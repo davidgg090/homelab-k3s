@@ -1,0 +1,25 @@
+# kubernetes/02-apps/homepage/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homepage-ingress
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: homepage
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    # Opcional: para forzar HTTPS
+    # traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    # traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  rules:
+    - host: home.homelab.local # Elige el nombre de host que prefieras
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: homepage # Nombre del Service
+                port:
+                  name: http # Nombre del puerto en el Service

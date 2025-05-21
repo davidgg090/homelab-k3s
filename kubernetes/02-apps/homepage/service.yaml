@@ -1,0 +1,17 @@
+# kubernetes/02-apps/homepage/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: homepage
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: homepage
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: homepage # Debe coincidir con las etiquetas del Pod
+  ports:
+    - name: http
+      port: 3000 # Puerto por el que el Service escucha dentro del clúster
+      targetPort: http # Nombre del puerto en el Deployment (o el número 3000)
+      protocol: TCP
