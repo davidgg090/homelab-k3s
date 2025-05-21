@@ -1,0 +1,15 @@
+# kubernetes/02-apps/qbittorrent/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qbittorrent-config-pvc
+  namespace: homelab # En tu namespace homelab
+  labels:
+    app.kubernetes.io/name: qbittorrent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi # La configuración de qBittorrent no suele ser enorme, pero los .torrent pueden acumularse.
+  storageClassName: local-path # Usará el provisionador por defecto de K3s

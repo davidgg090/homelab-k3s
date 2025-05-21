@@ -1,0 +1,25 @@
+# kubernetes/02-apps/qbittorrent/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qbittorrent-ingress
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: qbittorrent
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    # Opcional: para forzar HTTPS
+    # traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    # traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  rules:
+    - host: qb.homelab.local # O qbittorrent.homelab.local, el que prefieras
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qbittorrent-webui # Nombre del Service para la WebUI
+                port:
+                  name: http-webui # Nombre del puerto en el Service

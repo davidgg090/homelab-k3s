@@ -1,0 +1,17 @@
+# kubernetes/02-apps/qbittorrent/service-webui.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-webui
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: qbittorrent
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: qbittorrent # Debe coincidir con las etiquetas del Pod
+  ports:
+    - name: http-webui
+      port: 8080 # Puerto por el que el Service escucha dentro del clúster
+      targetPort: http-webui # Nombre del puerto en el Deployment
+      protocol: TCP

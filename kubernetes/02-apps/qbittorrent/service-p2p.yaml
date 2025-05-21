@@ -1,0 +1,23 @@
+# kubernetes/02-apps/qbittorrent/service-p2p.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-p2p
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: qbittorrent
+spec:
+  type: NodePort # Expone los puertos en la IP de tu Mini PC
+  selector:
+    app.kubernetes.io/name: qbittorrent # Debe coincidir con las etiquetas del Pod
+  ports:
+    - name: p2p-tcp
+      port: 6881 # Puerto interno del servicio para el tráfico TCP de torrents
+      targetPort: p2p-tcp # Nombre del puerto TCP en el Deployment
+      nodePort: 30881 # Puerto que se expondrá en la IP de tu Mini PC para TCP
+      protocol: TCP
+    - name: p2p-udp
+      port: 6881 # Puerto interno del servicio para el tráfico UDP de torrents
+      targetPort: p2p-udp # Nombre del puerto UDP en el Deployment
+      nodePort: 30881 # Puerto que se expondrá en la IP de tu Mini PC para UDP
+      protocol: UDP
