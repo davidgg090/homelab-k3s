@@ -1,0 +1,115 @@
+# kubernetes/04-network-policies/03-app-to-app-communication.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-radarr-to-qbittorrent
+  namespace: homelab
+spec:
+  podSelector: # Aplica esta política a los pods de qBittorrent
+    matchLabels:
+      app.kubernetes.io/name: qbittorrent
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: # Permite tráfico desde los pods de Radarr
+            matchLabels:
+              app.kubernetes.io/name: radarr
+      ports: # Al puerto de la WebUI de qBittorrent
+        - protocol: TCP
+          port: 8080 
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-sonarr-to-qbittorrent # Sonarr también necesita acceder a qBittorrent
+  namespace: homelab
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: qbittorrent
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: sonarr
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-apps-to-jackett # Radarr y Sonarr necesitan acceder a Jackett
+  namespace: homelab
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: jackett
+  policyTypes:
+    - Ingress
+  ingress:
+    - from: # Desde Radarr
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: radarr
+    - from: # Desde Sonarr
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: sonarr
+      ports:
+        - protocol: TCP
+          port: 9117 # Puerto de Jackett
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-overseerr-to-arrs # Overseerr necesita acceder a Radarr y Sonarr
+  namespace: homelab
+spec:
+  # Esta política permite a Overseerr ENVIAR tráfico (Egress)
+  podSelector: 
+    matchLabels:
+      app.kubernetes.io/name: overseerr
+  policyTypes:
+    - Egress
+  egress:
+    - to: # A Radarr
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: radarr
+      ports:
+        - protocol: TCP
+          port: 7878 # Puerto de Radarr
+    - to: # A Sonarr
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: sonarr
+      ports:
+        - protocol: TCP
+          port: 8989 # Puerto de Sonarr
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-apps-to-postgres # Ejemplo: Si alguna app necesita PostgreSQL
+  namespace: homelab
+spec:
+  podSelector: # Aplica a PostgreSQL
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+  policyTypes:
+    - Ingress
+  ingress:
+    - from: # Ejemplo: permitir desde Bazarr
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: bazarr
+      # Añade más 'from' para otras apps que usen PostgreSQL
+      ports:
+        - protocol: TCP
+          port: 5432
+# ---
+# (Añade más políticas según sea necesario para otras interacciones, ej. apps a MongoDB)

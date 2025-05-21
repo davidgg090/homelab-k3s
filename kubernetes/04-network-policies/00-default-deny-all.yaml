@@ -1,0 +1,12 @@
+# kubernetes/04-network-policies/00-default-deny-all.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: homelab
+spec:
+  podSelector: {} # Un selector vacío selecciona todos los Pods en el namespace
+  policyTypes:
+    - Ingress
+    - Egress
+  # No se especifican reglas de 'ingress' o 'egress', lo que significa que todo está denegado.

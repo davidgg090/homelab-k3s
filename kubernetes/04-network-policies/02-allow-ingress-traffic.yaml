@@ -1,0 +1,23 @@
+# kubernetes/04-network-policies/02-allow-ingress-traffic.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-controller-homelab
+  namespace: homelab
+spec:
+  podSelector: {} # Aplica a todos los pods en 'homelab' que podrían ser accedidos vía Ingress
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # Los pods de Traefik en K3s suelen estar en el namespace kube-system
+        # y tienen la etiqueta app.kubernetes.io/name=traefik
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system # Ajusta si el namespace de Traefik es otro
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik # Etiqueta de los pods de Traefik
+      # No especificamos puertos aquí, lo que significa que Traefik puede alcanzar
+      # cualquier puerto en los pods seleccionados en 'homelab' que los pods expongan.
+      # Podrías añadir 'ports' si quieres ser más restrictivo.
