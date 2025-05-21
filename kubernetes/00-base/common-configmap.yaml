@@ -1,0 +1,10 @@
+# kubernetes/00-base/common-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-common-vars
+  namespace: homelab # Asegúrate de que esté en tu namespace homelab
+data:
+  PUID: "1000"
+  PGID: "1000"
+  TZ: "America/Santiago"

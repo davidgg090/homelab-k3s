@@ -1,0 +1,7 @@
+# kubernetes/00-base/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: homelab
+  labels: # Opcional: etiquetas para tu namespace
+    name: homelab-ns
