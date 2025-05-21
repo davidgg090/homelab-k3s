@@ -1,0 +1,16 @@
+# kubernetes/02-apps/plex/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: plex-config-pvc
+  namespace: homelab # En tu namespace homelab
+  labels:
+    app.kubernetes.io/name: plex
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi # ¡MUY IMPORTANTE! Los metadatos de Plex pueden crecer MUCHO. 50Gi es un punto de partida, monitorea y ajusta.
+                    # Si tienes una biblioteca grande, podrías necesitar 100Gi o más.
+  storageClassName: local-path # Usará el provisionador por defecto de K3s en el SSD

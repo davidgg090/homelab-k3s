@@ -1,0 +1,120 @@
+# kubernetes/02-apps/plex/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: plex
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # Plex no está diseñado para escalar horizontalmente fácilmente
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: plex
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: plex
+    spec:
+      # securityContext: # Opcional a nivel de Pod, las imágenes de linuxserver suelen manejar bien PUID/PGID
+      #   runAsUser: 1000
+      #   runAsGroup: 1000
+      #   fsGroup: 1000
+      containers:
+        - name: plex
+          image: lscr.io/linuxserver/plex:latest # O una versión específica
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: homelab-common-vars # Para PUID, PGID, TZ
+          env:
+            - name: PLEX_CLAIM
+              valueFrom:
+                secretKeyRef:
+                  name: homelab-secrets
+                  key: PLEX_CLAIM_TOKEN
+            - name: VERSION # Opcional: 'docker' o una versión específica de Plex Pass
+              value: "docker" 
+            # - name: ADVERTISE_IP # Opcional: Puede ser útil si hay problemas de descubrimiento o acceso remoto
+                                 # Ejemplo: "http://TU_IP_MINIPC:32400" (pero el acceso remoto está fuera del alcance aquí)
+          ports:
+            - name: http-plex # UI Web y API principal
+              containerPort: 32400
+              protocol: TCP
+            # Puertos adicionales que Plex usa para varias funciones (DLNA, companion, etc.)
+            # Muchos son UDP. La exposición de estos puede ser compleja y depende de si los necesitas.
+            - name: dlna-udp
+              containerPort: 1900
+              protocol: UDP
+            - name: plex-companion
+              containerPort: 3005
+              protocol: TCP
+            - name: plex-roku
+              containerPort: 8324
+              protocol: TCP
+            - name: gdm-1-udp # Plex GDM (discovery)
+              containerPort: 32410
+              protocol: UDP
+            - name: gdm-2-udp
+              containerPort: 32412
+              protocol: UDP
+            - name: gdm-3-udp
+              containerPort: 32413
+              protocol: UDP
+            - name: gdm-4-udp
+              containerPort: 32414
+              protocol: UDP
+            - name: dlna-tcp # Plex DLNA Server
+              containerPort: 32469
+              protocol: TCP
+          volumeMounts:
+            - name: plex-config
+              mountPath: /config # Ruta de configuración y metadatos de Plex
+            - name: media-movies
+              mountPath: /data/movies # Donde Plex buscará películas
+              subPath: movies        # Monta la subcarpeta 'movies' del PVC 'homelab-media-pvc'
+            - name: media-tv
+              mountPath: /data/tvshows # Donde Plex buscará series
+              subPath: tv             # Monta la subcarpeta 'tv' del PVC 'homelab-media-pvc'
+            # Descomenta y ajusta si habilitas la transcodificación por hardware:
+            # - name: transcode 
+            #   mountPath: /transcode # Opcional, para directorio de transcodificación temporal
+            # - name: dev-dri
+            #   mountPath: /dev/dri   # Para acceso a la GPU
+          # (Opcional) Sondas de Liveness y Readiness
+          livenessProbe:
+            httpGet:
+              path: /identity # Endpoint que Plex usa para identificarse
+              port: http-plex
+            initialDelaySeconds: 60 # Plex puede tardar en arrancar
+            periodSeconds: 20
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /identity
+              port: http-plex
+            initialDelaySeconds: 45
+            periodSeconds: 15
+            timeoutSeconds: 5
+          # (Opcional) Configuración para Transcodificación por Hardware (Intel QSV)
+          # securityContext:
+          #   privileged: true # Usar con precaución. Alternativamente, investiga capabilities o groups.
+      volumes:
+        - name: plex-config
+          persistentVolumeClaim:
+            claimName: plex-config-pvc
+        - name: media-movies
+          persistentVolumeClaim:
+            claimName: homelab-media-pvc # PVC global para medios
+        - name: media-tv
+          persistentVolumeClaim:
+            claimName: homelab-media-pvc
+        # Descomenta si habilitas transcodificación por hardware:
+        # - name: transcode # Opcional, podrías usar emptyDir o un PVC si es mucho
+        #   emptyDir: {} 
+        # - name: dev-dri
+        #   hostPath:
+        #     path: /dev/dri # Asegúrate que existe y tiene permisos en el host
+        #     type: Directory

@@ -1,0 +1,61 @@
+# kubernetes/02-apps/plex/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: plex
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: plex
+spec:
+  selector:
+    app.kubernetes.io/name: plex
+  ports:
+    - name: http-plex # UI Web y API principal
+      port: 32400
+      targetPort: http-plex # Coincide con el nombre del puerto en el Deployment
+      protocol: TCP
+    # Los siguientes puertos son opcionales y solo necesarios si requieres esas funcionalidades en tu LAN
+    # y tus clientes no pueden descubrir Plex sin ellos. Deben estar permitidos en UFW si usas NodePort.
+    - name: dlna-udp
+      port: 1900
+      targetPort: dlna-udp
+      protocol: UDP
+      # nodePort: 30901 # Ejemplo si usas NodePort
+    - name: plex-companion
+      port: 3005
+      targetPort: plex-companion
+      protocol: TCP
+      # nodePort: 30005 # Ejemplo
+    - name: plex-roku # Para algunos clientes Roku
+      port: 8324
+      targetPort: plex-roku
+      protocol: TCP
+      # nodePort: 30324 # Ejemplo
+    - name: gdm-1-udp
+      port: 32410
+      targetPort: gdm-1-udp
+      protocol: UDP
+      # nodePort: 32410 # Ejemplo
+    - name: gdm-2-udp
+      port: 32412
+      targetPort: gdm-2-udp
+      protocol: UDP
+      # nodePort: 32412 # Ejemplo
+    - name: gdm-3-udp
+      port: 32413
+      targetPort: gdm-3-udp
+      protocol: UDP
+      # nodePort: 32413 # Ejemplo
+    - name: gdm-4-udp
+      port: 32414
+      targetPort: gdm-4-udp
+      protocol: UDP
+      # nodePort: 32414 # Ejemplo
+    - name: dlna-tcp
+      port: 32469
+      targetPort: dlna-tcp
+      protocol: TCP
+      # nodePort: 32469 # Ejemplo
+  # Si necesitas los NodePorts para descubrimiento, cambia type a NodePort.
+  # De lo contrario, ClusterIP es suficiente si solo accedes vía Ingress.
+  type: ClusterIP # O NodePort si necesitas exponer los puertos UDP/TCP adicionales directamente.
