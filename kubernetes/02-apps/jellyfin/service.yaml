@@ -1,0 +1,35 @@
+# kubernetes/02-apps/jellyfin/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: jellyfin
+spec:
+  # type: ClusterIP # Por defecto. Cambiaríamos a LoadBalancer o NodePort si no usáramos Ingress para el puerto principal.
+  selector:
+    app.kubernetes.io/name: jellyfin
+  ports:
+    - name: http # Puerto principal para la UI web y API
+      port: 8096
+      targetPort: http # Coincide con el nombre del puerto en el Deployment
+      protocol: TCP
+    - name: https-alt # Puerto alternativo (a veces usado para companion/DLNA)
+      port: 8920
+      targetPort: dlna-http
+      protocol: TCP
+    # Para DLNA/SSDP, si los necesitas en tu LAN, NodePort es una opción.
+    # Estos puertos deben estar permitidos en tu UFW.
+    - name: discovery-udp
+      port: 7359
+      targetPort: discovery-udp # Coincide con el nombre del puerto en el Deployment
+      protocol: UDP
+      nodePort: 30359 # Ejemplo de NodePort (rango 30000-32767)
+    - name: dlna-ssdp
+      port: 1900
+      targetPort: dlna-ssdp
+      protocol: UDP
+      nodePort: 30900 # Ejemplo de NodePort
+  type: NodePort # Cambiamos a NodePort para exponer los puertos UDP. El Ingress seguirá usando los ClusterIPs para 8096.
+                 # Si solo quieres acceso web y no DLNA/SSDP, puedes dejarlo como ClusterIP y omitir los NodePorts UDP.

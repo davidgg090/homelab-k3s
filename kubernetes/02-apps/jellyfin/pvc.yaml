@@ -1,0 +1,15 @@
+# kubernetes/02-apps/jellyfin/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-config-pvc
+  namespace: homelab # En tu namespace homelab
+  labels:
+    app.kubernetes.io/name: jellyfin
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Gi # Ajusta según el tamaño de tu biblioteca. Los metadatos (imágenes, nfo) pueden ocupar bastante.
+  storageClassName: local-path # Usará el provisionador por defecto de K3s
