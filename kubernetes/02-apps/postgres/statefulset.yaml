@@ -1,0 +1,82 @@
+# kubernetes/02-apps/postgresql/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: postgresql
+spec:
+  serviceName: "postgresql" # Importante: debe coincidir con el nombre del Service
+  replicas: 1 # Suficiente para un Home Lab
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+  template: # Plantilla del Pod
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgresql
+    spec:
+      # La imagen oficial de postgres maneja bien sus permisos internos.
+      # Si tuvieras problemas de permisos con el hostPath PV, considera un securityContext:
+      # securityContext:
+      #   fsGroup: 26 # El GID que usa postgres dentro del contenedor oficial, o el GID 1000 si el hostPath lo necesita
+      containers:
+        - name: postgresql
+          image: postgres:16 # O la versión más reciente que prefieras, ej: postgres:15, postgres:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: homelab-secrets # Nombre del Secret definido en 00-base/
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homelab-secrets
+                  key: POSTGRES_PASSWORD
+            # Opcional: Si quieres crear una base de datos específica al inicio.
+            # Muchas aplicaciones crean sus propias bases de datos si tienen los permisos.
+            # - name: POSTGRES_DB
+            #   value: "mydatabase" # Nombre de la base de datos a crear
+            # Variables de entorno para la persistencia de datos.
+            # La imagen de postgres usa /var/lib/postgresql/data por defecto.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata # Subdirectorio dentro del volumen montado
+          ports:
+            - name: postgresql
+              containerPort: 5432 # Puerto estándar de PostgreSQL
+              protocol: TCP
+          volumeMounts:
+            - name: postgresql-data
+              mountPath: /var/lib/postgresql/data # Directorio donde PostgreSQL almacena sus datos
+          # (Opcional) Sondas de Liveness y Readiness para PostgreSQL
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - "${POSTGRES_USER}" # Usa la variable de entorno del usuario
+                # - -d 
+                # - "${POSTGRES_DB}" # Si definiste una DB específica, puedes añadirla aquí
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - "${POSTGRES_USER}"
+                # - -d
+                # - "${POSTGRES_DB}"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      volumes: # Usamos 'volumes' para referenciar nuestro PVC preexistente
+        - name: postgresql-data
+          persistentVolumeClaim:
+            claimName: homelab-postgres-data-pvc # Referencia al PVC que creamos en 01-storage/

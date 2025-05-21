@@ -1,0 +1,17 @@
+# kubernetes/02-apps/postgresql/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql # Este nombre debe coincidir con serviceName en el StatefulSet
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: postgresql
+spec:
+  type: ClusterIP # Solo accesible dentro del clúster
+  selector:
+    app.kubernetes.io/name: postgresql # Debe coincidir con las etiquetas del Pod en el StatefulSet
+  ports:
+    - name: postgresql
+      port: 5432 # Puerto por el que el Service escucha dentro del clúster
+      targetPort: postgresql # Nombre del puerto en el StatefulSet (o el número 5432)
+      protocol: TCP
