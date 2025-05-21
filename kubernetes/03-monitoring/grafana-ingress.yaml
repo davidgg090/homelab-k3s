@@ -1,0 +1,20 @@
+# kubernetes/03-monitoring/grafana-ingress.yaml (USAR SOLO SI grafana.ingress.enabled=false en values.yaml)
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: grafana-main-ingress
+#   namespace: monitoring # Debe estar en el mismo namespace que el servicio de Grafana
+#   annotations:
+#     kubernetes.io/ingress.class: "traefik"
+# spec:
+#   rules:
+#     - host: grafana.homelab.local
+#       http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: prometheus-grafana # Nombre del servicio de Grafana creado por el chart
+#                 port:
+#                   number: 80 # El servicio de Grafana suele exponer el puerto 80 internamente

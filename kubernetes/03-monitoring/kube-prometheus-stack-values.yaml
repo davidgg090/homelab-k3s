@@ -1,0 +1,114 @@
+# kubernetes/03-monitoring/kube-prometheus-stack-values.yaml
+
+# Configuraciones de Grafana
+grafana:
+  enabled: true
+  # adminPassword: "YOUR_GRAFANA_ADMIN_PASSWORD_REPLACE_ME" # Puedes ponerlo aquí (menos seguro) o cambiarlo después del primer login.
+                                                          # O gestionar este secreto de forma más segura.
+                                                          # Por defecto, el usuario es 'admin' y la contraseña se genera y guarda en un Secret.
+                                                          # kubectl get secret --namespace monitoring prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+  ingress:
+    enabled: true
+    ingressClassName: traefik # Asegúrate que este sea el IngressClass de K3s (Traefik lo es)
+    hosts:
+      - grafana.homelab.local # Tu host para Grafana
+    path: /
+    pathType: Prefix
+    # tls: # Configura TLS aquí si tienes cert-manager o certificados manuales
+    #   - secretName: grafana-tls-secret # Nombre del secret con tu cert/key
+    #     hosts:
+    #       - grafana.homelab.local
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: local-path # Usará el provisionador por defecto de K3s en el SSD
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi # Ajusta según necesites para dashboards y configuración de Grafana
+    # existingClaim: "" # Si tuvieras un PVC existente que quieras usar
+
+  # Configuración de PUID/PGID para Grafana si es necesario (usualmente no para el chart oficial)
+  # podSecurityContext:
+  #   runAsUser: 1000
+  #   runAsGroup: 1000
+  #   fsGroup: 1000
+
+  # Habilita dashboards por defecto útiles
+  defaultDashboardsEnabled: true
+  # defaultDashboardsTimezone: "America/Santiago" # Opcional, para que los dashboards usen tu TZ por defecto
+
+# Configuraciones de Prometheus
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 15d # Cuánto tiempo retener las métricas. Ajusta según tu espacio en disco.
+    retentionSize: "" # Alternativa a 'retention', limita por tamaño. Ej: "40GiB"
+    storageSpec:
+      volumeClaimTemplate: # El chart creará un PVC a partir de esta plantilla
+        spec:
+          storageClassName: local-path # Usará el provisionador por defecto de K3s en el SSD
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi # Prometheus puede usar bastante espacio. Monitorea y ajusta.
+    # Configuración de PUID/PGID para Prometheus si es necesario
+    # podSecurityContext:
+    #   runAsUser: 1000
+    #   runAsGroup: 1000
+    #   fsGroup: 1000
+
+    # Habilitar serviceMonitor para el propio Prometheus (para que se auto-monitoree)
+    serviceMonitor:
+      selfMonitor:
+        enabled: true
+
+# Configuraciones de Alertmanager (puedes deshabilitarlo si no necesitas alertas)
+alertmanager:
+  enabled: true # Pon a false si no quieres Alertmanager
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+
+# Deshabilitar componentes que podrías no necesitar en un Home Lab pequeño
+kubeControllerManager:
+  enabled: false # Métricas del kube-controller-manager, a menudo no críticas para home lab
+kubeEtcd:
+  enabled: false # K3s usa su propio etcd o kine (sqlite), este exportador es para etcd externo
+kubeScheduler:
+  enabled: false # Métricas del kube-scheduler, a menudo no críticas para home lab
+kubeProxy:
+  enabled: true # Métricas de kube-proxy pueden ser útiles
+
+# nodeExporter recoge métricas del host (uso de CPU, memoria, disco del nodo)
+nodeExporter:
+  enabled: true
+
+# kubeStateMetrics recoge métricas del estado de los objetos de Kubernetes
+kubeStateMetrics:
+  enabled: true
+
+# (Opcional) Puedes ajustar los recursos (requests/limits) para los componentes
+# si ves que consumen mucho o poco en tu Mini PC. Ejemplo:
+# grafana:
+#   resources:
+#     requests:
+#       cpu: 100m
+#       memory: 128Mi
+#     limits:
+#       cpu: 500m
+#       memory: 256Mi
+# prometheus:
+#   prometheusSpec:
+#     resources:
+#       requests:
+#         cpu: 500m
+#         memory: 1Gi
+#       limits:
+#         cpu: "1"
+#         memory: 2Gi
