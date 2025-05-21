@@ -1,0 +1,83 @@
+# kubernetes/02-apps/mongodb/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: mongodb
+spec:
+  serviceName: "mongodb" # Nombre del Service "headless" que se creará o se asociará
+  replicas: 1 # Para un Home Lab, una réplica suele ser suficiente
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mongodb
+  template: # Plantilla del Pod
+    metadata:
+      labels:
+        app.kubernetes.io/name: mongodb
+    spec:
+      # No es común necesitar PUID/PGID para la imagen oficial de MongoDB,
+      # ya que maneja sus propios permisos internos en su volumen de datos.
+      # Si usaras una imagen personalizada o tuvieras problemas de permisos en el hostPath PV,
+      # podrías necesitar un securityContext:
+      # securityContext:
+      #   fsGroup: A_GROUP_ID_THAT_HAS_ACCESS_TO_THE_PV_PATH # Ej. 1000
+      containers:
+        - name: mongodb
+          image: mongo:latest # O una versión específica, ej: mongo:6.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: homelab-secrets # Nombre del Secret definido en 00-base/
+                  key: MONGO_INITDB_ROOT_USERNAME
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homelab-secrets
+                  key: MONGO_INITDB_ROOT_PASSWORD
+          ports:
+            - name: mongodb
+              containerPort: 27017 # Puerto estándar de MongoDB
+              protocol: TCP
+          volumeMounts:
+            - name: mongodb-data
+              mountPath: /data/db # Directorio donde MongoDB almacena sus datos
+          # (Opcional) Sondas de Liveness y Readiness para MongoDB
+          livenessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      volumes: # Esta sección es importante si NO usas volumeClaimTemplates
+        - name: mongodb-data
+          persistentVolumeClaim:
+            claimName: homelab-mongo-data-pvc # Referencia al PVC que creamos en 01-storage/
+  # (Alternativa a 'volumes' arriba si quisieras que el StatefulSet gestione la creación de PVCs)
+  # No lo usaremos aquí porque ya creamos un PVC global, pero para referencia:
+  # volumeClaimTemplates:
+  #   - metadata:
+  #       name: mongodb-data # El nombre del volumen montado arriba
+  #     spec:
+  #       accessModes: [ "ReadWriteOnce" ]
+  #       storageClassName: homelab-hostpath # O la clase que corresponda
+  #       resources:
+  #         requests:
+  #           storage: 20Gi # Coincide con la capacidad del PV

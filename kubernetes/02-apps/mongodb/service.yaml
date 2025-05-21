@@ -1,0 +1,17 @@
+# kubernetes/02-apps/mongodb/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb # Este nombre debe coincidir con serviceName en el StatefulSet
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: mongodb
+spec:
+  type: ClusterIP # Solo accesible dentro del clúster
+  selector:
+    app.kubernetes.io/name: mongodb # Debe coincidir con las etiquetas del Pod en el StatefulSet
+  ports:
+    - name: mongodb
+      port: 27017 # Puerto por el que el Service escucha dentro del clúster
+      targetPort: mongodb # Nombre del puerto en el StatefulSet (o el número 27017)
+      protocol: TCP
