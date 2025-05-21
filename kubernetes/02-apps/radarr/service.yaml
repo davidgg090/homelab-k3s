@@ -1,0 +1,17 @@
+# kubernetes/02-apps/radarr/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: radarr
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: radarr # Debe coincidir con las etiquetas del Pod
+  ports:
+    - name: http
+      port: 7878 # Puerto por el que el Service escucha dentro del clúster
+      targetPort: http # Nombre del puerto en el Deployment (o el número 7878)
+      protocol: TCP

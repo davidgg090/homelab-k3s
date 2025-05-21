@@ -1,0 +1,15 @@
+# kubernetes/02-apps/radarr/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: radarr-config-pvc
+  namespace: homelab # En tu namespace homelab
+  labels:
+    app.kubernetes.io/name: radarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi # La configuración de Radarr no suele ser excesiva, pero puede crecer con la base de datos.
+  storageClassName: local-path # Usará el provisionador por defecto de K3s
