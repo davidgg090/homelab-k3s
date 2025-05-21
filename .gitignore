@@ -1,0 +1,82 @@
+# Archivos generados por el sistema operativo
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Archivos de configuración local del editor/IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos temporales o de caché
+*.bak
+*.swp
+*~
+*.tmp
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de Kubernetes que NO deben subirse
+# (Especialmente si contienen secretos reales o configuraciones específicas del entorno no gestionadas)
+kubernetes/00-base/secrets.yaml # El archivo con secretos REALES (la plantilla secrets.template.yaml SÍ se sube)
+# Cualquier otro archivo que contenga contraseñas o tokens en texto plano
+# Ejemplo: si generaras un kubeconfig para CI/CD y lo guardaras temporalmente:
+# .kubeconfig 
+# temp-kubeconfig.yaml
+
+# Dependencias de Node.js (si usaras alguna herramienta JS para linting/templating)
+node_modules/
+package-lock.json # A menos que quieras versionar las dependencias exactas de herramientas de desarrollo
+yarn.lock
+
+# Dependencias de Python (si usaras Python para scripts)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.nox/
+.hypothesis/
+.pytest_cache/
+cover/
+htmlcov/
+.coverage
+.cache
+
+# Archivos de Terraform (si alguna vez lo integras)
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfplan
+
+# Archivos de Helm (charts descargados localmente que no son parte de tu código)
+charts/ # Si descargas charts aquí para inspección, pero no los modificas para el repo
+*.tgz # Paquetes de Helm descargados
+
+# Archivos de SOPS (si usas Mozilla SOPS para encriptar secretos)
+# NO ignores el archivo .sops.yaml si lo usas para la configuración de SOPS.
+# Solo ignora las claves privadas o archivos desencriptados temporalmente.
+*.sops.keys # Claves privadas de SOPS
+# *.decrypted.yaml # Archivos desencriptados temporalmente
+
+# Archivos específicos de tu entorno que no quieres compartir
+# local-values.yaml
+# my-server-specific-config.yaml
+
+# Directorios de build o distribución
+dist/
+build/
+target/
