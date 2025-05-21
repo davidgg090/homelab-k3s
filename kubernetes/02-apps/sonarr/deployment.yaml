@@ -1,0 +1,61 @@
+# kubernetes/02-apps/sonarr/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: sonarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sonarr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sonarr
+    spec:
+      containers:
+        - name: sonarr
+          image: lscr.io/linuxserver/sonarr:latest # O :preview / :develop si quieres probar versiones más nuevas
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: homelab-common-vars # Para PUID, PGID, TZ
+          ports:
+            - name: http
+              containerPort: 8989 # Puerto por defecto de la UI de Sonarr
+              protocol: TCP
+          volumeMounts:
+            - name: sonarr-config
+              mountPath: /config # Ruta de configuración de Sonarr
+            - name: media-tv # Sonarr gestiona series
+              mountPath: /tv    # Ruta donde Sonarr gestionará las series
+              subPath: tv      # Monta la subcarpeta 'tv' del PVC 'homelab-media-pvc'
+            - name: media-downloads
+              mountPath: /downloads # Ruta donde Sonarr buscará descargas completadas
+              subPath: downloads   # Monta la subcarpeta 'downloads' del PVC 'homelab-media-pvc'
+          # (Opcional) Sondas de Liveness y Readiness
+          livenessProbe:
+            httpGet:
+              path: /api/v3/system/status # Endpoint de API de Sonarr
+              port: http
+            initialDelaySeconds: 45
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /api/v3/system/status
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+      volumes:
+        - name: sonarr-config
+          persistentVolumeClaim:
+            claimName: sonarr-config-pvc
+        - name: media-tv # Sonarr necesita acceso a la carpeta de series
+          persistentVolumeClaim:
+            claimName: homelab-media-pvc # PVC global para medios (en /mnt/usbmedia)
+        - name: media-downloads
+          persistentVolumeClaim:
+            claimName: homelab-media-pvc # PVC global para medios (en /mnt/usbmedia)

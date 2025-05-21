@@ -1,0 +1,15 @@
+# kubernetes/02-apps/sonarr/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarr-config-pvc
+  namespace: homelab # En tu namespace homelab
+  labels:
+    app.kubernetes.io/name: sonarr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi # Similar a Radarr, la config no es enorme pero la BD puede crecer.
+  storageClassName: local-path # Usará el provisionador por defecto de K3s

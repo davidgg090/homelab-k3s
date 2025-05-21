@@ -1,0 +1,40 @@
+# kubernetes/02-apps/sonarr/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sonarr-ingress
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: sonarr
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    # Opcional: para forzar HTTPS
+    # traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    # traefik.ingress.kubernetes.io/router.tls: "true"
+    # Sonarr, similar a Radarr, puede beneficiarse de estas cabeceras
+    traefik.ingress.kubernetes.io/router.middlewares: sonarr-headers@kubernetescrd
+spec:
+  rules:
+    - host: sonarr.homelab.local # El nombre de host que usarás
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sonarr # Nombre del Service
+                port:
+                  name: http # Nombre del puerto en el Service
+---
+# Middleware para Sonarr (similar al de Radarr)
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: sonarr-headers
+  namespace: homelab
+spec:
+  headers:
+    customRequestHeaders:
+      X-Sonarr-Host: "{{.Host}}"
+    # Opcional, si tuvieras problemas con el base path (no deberías con path: /)
+    # X-Sonarr-BaseUrl: "/"
