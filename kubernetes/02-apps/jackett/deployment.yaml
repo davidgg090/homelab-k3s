@@ -1,0 +1,59 @@
+# kubernetes/02-apps/jackett/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jackett
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: jackett
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jackett
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jackett
+    spec:
+      containers:
+        - name: jackett
+          image: lscr.io/linuxserver/jackett:latest # O una versión específica
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: homelab-common-vars # Para PUID, PGID, TZ
+          env:
+            # Opcional: Jackett puede auto-actualizarse, pero en K8s es mejor gestionar actualizaciones actualizando la imagen del Deployment.
+            # - name: AUTO_UPDATE 
+            #   value: "false" 
+          ports:
+            - name: http
+              containerPort: 9117 # Puerto por defecto de la UI de Jackett
+              protocol: TCP
+          volumeMounts:
+            - name: jackett-config
+              mountPath: /config # Ruta donde Jackett espera sus archivos de configuración y logs
+            - name: media-downloads # Jackett puede necesitar acceso a la carpeta de descargas para algunos indexers (blackhole)
+              mountPath: /downloads
+              subPath: downloads # Monta la subcarpeta 'downloads' del PVC 'homelab-media-pvc'
+          # (Opcional) Sondas de Liveness y Readiness
+          livenessProbe:
+            httpGet:
+              path: /UI/Dashboard # Un endpoint válido en la UI de Jackett
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /UI/Dashboard
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 15
+      volumes:
+        - name: jackett-config
+          persistentVolumeClaim:
+            claimName: jackett-config-pvc # Referencia al PVC que creamos antes
+        - name: media-downloads
+          persistentVolumeClaim:
+            claimName: homelab-media-pvc # PVC global para medios (definido en 01-storage/)

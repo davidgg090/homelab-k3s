@@ -1,0 +1,17 @@
+# kubernetes/02-apps/jackett/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: jackett # Este será el nombre DNS interno
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: jackett
+spec:
+  type: ClusterIP # Solo accesible dentro del clúster
+  selector:
+    app.kubernetes.io/name: jackett # Debe coincidir con las etiquetas del Pod
+  ports:
+    - name: http
+      port: 9117 # Puerto por el que el Service escucha dentro del clúster
+      targetPort: http # Nombre del puerto en el Deployment (o el número 9117)
+      protocol: TCP
