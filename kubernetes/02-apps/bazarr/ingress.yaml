@@ -1,0 +1,25 @@
+# kubernetes/02-apps/bazarr/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bazarr-ingress
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: bazarr
+  annotations:
+    kubernetes.io/ingress.class: "traefik" # Especifica que Traefik debe manejar este Ingress
+    # Opcional: para forzar HTTPS si tienes Traefik configurado para ello con cert-manager o certs globales
+    # traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    # traefik.ingress.kubernetes.io/router.tls: "true" 
+spec:
+  rules:
+    - host: bazarr.homelab.local # El nombre de host que usarás para acceder a Bazarr
+      http:
+        paths:
+          - path: / # Todo el tráfico para este host irá a Bazarr
+            pathType: Prefix
+            backend:
+              service:
+                name: bazarr # Nombre del Service que creamos antes
+                port:
+                  name: http # Nombre del puerto en el Service (o el número 6767)

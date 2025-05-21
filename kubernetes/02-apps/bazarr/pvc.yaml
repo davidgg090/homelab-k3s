@@ -1,0 +1,15 @@
+# kubernetes/02-apps/bazarr/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bazarr-config-pvc
+  namespace: homelab # Asegúrate de que esté en tu namespace homelab
+  labels:
+    app.kubernetes.io/name: bazarr
+spec:
+  accessModes:
+    - ReadWriteOnce # Puede ser montado como lectura-escritura por un solo nodo
+  resources:
+    requests:
+      storage: 2Gi # Ajusta el tamaño según tus necesidades (la config de Bazarr no suele ser enorme)
+  storageClassName: local-path # Usará el provisionador por defecto de K3s

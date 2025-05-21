@@ -1,0 +1,17 @@
+# kubernetes/02-apps/bazarr/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: bazarr
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: bazarr
+spec:
+  type: ClusterIP # Solo accesible dentro del clúster, expondremos vía Ingress
+  selector:
+    app.kubernetes.io/name: bazarr # Debe coincidir con las etiquetas del Pod en el Deployment
+  ports:
+    - name: http
+      port: 6767 # Puerto por el que el Service escucha dentro del clúster
+      targetPort: http # Nombre del puerto en el Deployment (o el número 6767 directamente)
+      protocol: TCP
