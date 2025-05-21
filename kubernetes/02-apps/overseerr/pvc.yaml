@@ -1,0 +1,15 @@
+# kubernetes/02-apps/overseerr/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: overseerr-config-pvc
+  namespace: homelab # En tu namespace homelab
+  labels:
+    app.kubernetes.io/name: overseerr
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi # La configuración de Overseerr no suele ser muy grande
+  storageClassName: local-path # Usará el provisionador por defecto de K3s

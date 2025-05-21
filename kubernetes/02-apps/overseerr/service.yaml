@@ -1,0 +1,17 @@
+# kubernetes/02-apps/overseerr/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: overseerr
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: overseerr
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: overseerr # Debe coincidir con las etiquetas del Pod
+  ports:
+    - name: http
+      port: 5055 # Puerto por el que el Service escucha dentro del clúster
+      targetPort: http # Nombre del puerto en el Deployment (o el número 5055)
+      protocol: TCP

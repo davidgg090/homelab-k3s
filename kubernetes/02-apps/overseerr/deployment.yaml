@@ -1,0 +1,49 @@
+# kubernetes/02-apps/overseerr/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overseerr
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: overseerr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: overseerr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: overseerr
+    spec:
+      containers:
+        - name: overseerr
+          image: lscr.io/linuxserver/overseerr:latest # O una versión específica
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: homelab-common-vars # Para PUID, PGID, TZ
+          ports:
+            - name: http
+              containerPort: 5055 # Puerto por defecto de la UI de Overseerr
+              protocol: TCP
+          volumeMounts:
+            - name: overseerr-config
+              mountPath: /config # Ruta donde Overseerr espera sus archivos de configuración
+          # (Opcional) Sondas de Liveness y Readiness
+          livenessProbe:
+            httpGet:
+              path: /api/v1/status # Endpoint de estado de Overseerr
+              port: http
+            initialDelaySeconds: 45 # Overseerr puede tardar un poco en iniciar la primera vez
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /api/v1/status
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+      volumes:
+        - name: overseerr-config
+          persistentVolumeClaim:
+            claimName: overseerr-config-pvc # Referencia al PVC que creamos antes
