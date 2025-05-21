@@ -1,0 +1,18 @@
+# kubernetes/02-apps/docker-registry/service-nodeport.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: docker-registry-nodeport # Nombre diferente al ClusterIP Service para evitar conflictos
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: docker-registry # Selector sigue siendo el mismo para apuntar a los mismos pods
+spec:
+  type: NodePort # Expone el servicio en un puerto en cada nodo del clúster
+  selector:
+    app.kubernetes.io/name: docker-registry # Debe coincidir con las etiquetas del Pod en el Deployment
+  ports:
+    - name: registry-nodeport-http
+      port: 5000 # Puerto interno del servicio (coincide con el targetPort del pod)
+      targetPort: registry-http # Nombre del puerto en el Deployment (o el número 5000)
+      nodePort: 30002 # Puerto que se expondrá en la IP de tu Mini PC (ej. TU_IP_MINIPC:30002)
+      protocol: TCP

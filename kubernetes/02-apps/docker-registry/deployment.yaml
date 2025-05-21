@@ -1,0 +1,51 @@
+# kubernetes/02-apps/docker-registry/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docker-registry
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: docker-registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: docker-registry
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: docker-registry
+    spec:
+      containers:
+        - name: registry
+          image: registry:2 # Imagen oficial de Docker Registry
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: registry-http
+              containerPort: 5000 # Puerto por defecto del registry
+              protocol: TCP
+          env: # Variables de entorno para configurar el registry
+            # Ver https://docs.docker.com/registry/configuration/
+            # Por ejemplo, para habilitar la eliminación de imágenes (requiere garbage collection)
+            - name: REGISTRY_STORAGE_DELETE_ENABLED 
+              value: "true"
+          volumeMounts:
+            - name: registry-storage
+              mountPath: /var/lib/registry # Directorio donde el registry almacena las imágenes dentro del contenedor
+          # (Opcional) Sondas de Liveness y Readiness
+          livenessProbe:
+            httpGet:
+              path: / # El endpoint raíz suele devolver un 200 OK si el registry está vivo
+              port: registry-http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /v2/ # El endpoint API V2 devuelve un 200 OK si está listo
+              port: registry-http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: registry-storage
+          persistentVolumeClaim:
+            claimName: homelab-registry-data-pvc # Referencia al PVC que creamos en 01-storage/

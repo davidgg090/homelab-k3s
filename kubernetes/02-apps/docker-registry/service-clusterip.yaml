@@ -1,0 +1,17 @@
+# kubernetes/02-apps/docker-registry/service-clusterip.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: docker-registry # Este será el nombre DNS interno: docker-registry.homelab.svc.cluster.local
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: docker-registry
+spec:
+  type: ClusterIP # Solo accesible dentro del clúster
+  selector:
+    app.kubernetes.io/name: docker-registry # Debe coincidir con las etiquetas del Pod en el Deployment
+  ports:
+    - name: registry-http
+      port: 5000 # Puerto por el que el Service escucha dentro del clúster
+      targetPort: registry-http # Nombre del puerto en el Deployment (o el número 5000)
+      protocol: TCP
