@@ -61,6 +61,7 @@ prometheus:
     serviceMonitor:
       selfMonitor:
         enabled: true
+    maximumStartupDurationSeconds: 120
 
 # Configuraciones de Alertmanager (puedes deshabilitarlo si no necesitas alertas)
 alertmanager:

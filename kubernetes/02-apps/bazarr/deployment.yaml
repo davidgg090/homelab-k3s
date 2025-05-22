@@ -18,46 +18,46 @@ spec:
     spec:
       containers:
         - name: bazarr
-          image: lscr.io/linuxserver/bazarr:latest # O una versión específica: lscr.io/linuxserver/bazarr:1.4.2
+          image: lscr.io/linuxserver/bazarr:latest
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
                 name: homelab-common-vars # Para PUID, PGID, TZ
           ports:
             - name: http
-              containerPort: 6767 # Puerto por defecto de la UI de Bazarr
+              containerPort: 6767
               protocol: TCP
           volumeMounts:
-            - name: bazarr-config # Volumen para la configuración de Bazarr
+            - name: bazarr-config
               mountPath: /config
-            - name: media-movies # Volumen compartido para películas
-              mountPath: /movies # Ruta dentro del contenedor donde Bazarr buscará películas
-              subPath: movies   # Monta la subcarpeta 'movies' del PVC 'homelab-media-pvc'
-            - name: media-tv # Volumen compartido para series
-              mountPath: /tv     # Ruta dentro del contenedor donde Bazarr buscará series
-              subPath: tv       # Monta la subcarpeta 'tv' del PVC 'homelab-media-pvc'
-          # (Opcional) Sondas de Liveness y Readiness para mejor gestión por Kubernetes
-          livenessProbe:
-            httpGet:
-              path: / # Bazarr no tiene un endpoint de health específico que yo sepa, la raíz suele funcionar
-              port: http
-            initialDelaySeconds: 30
-            periodSeconds: 15
-            timeoutSeconds: 5
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            timeoutSeconds: 5
+            - name: media-movies-direct # Modificado
+              mountPath: /movies
+            - name: media-tv-direct     # Modificado
+              mountPath: /tv
+          # (Sondas Comentadas Temporalmente)
+          # livenessProbe:
+          #   httpGet:
+          #     path: / # Bazarr no tiene un endpoint de health específico que yo sepa, la raíz suele funcionar
+          #     port: http
+          #   initialDelaySeconds: 30
+          #   periodSeconds: 15
+          #   timeoutSeconds: 5
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          #   initialDelaySeconds: 15
+          #   periodSeconds: 10
+          #   timeoutSeconds: 5
       volumes:
         - name: bazarr-config
           persistentVolumeClaim:
-            claimName: bazarr-config-pvc # Referencia al PVC que creamos antes
-        - name: media-movies # Define el volumen que usa el PVC global de medios
-          persistentVolumeClaim:
-            claimName: homelab-media-pvc # PVC global para medios (definido en 01-storage/)
-        - name: media-tv # Define el volumen que usa el PVC global de medios
-          persistentVolumeClaim:
-            claimName: homelab-media-pvc # PVC global para medios (definido en 01-storage/)
+            claimName: bazarr-config-pvc
+        - name: media-movies-direct # Modificado
+          hostPath:
+            path: /mnt/usbmedia/movies # Montaje directo
+            type: Directory
+        - name: media-tv-direct     # Modificado
+          hostPath:
+            path: /mnt/usbmedia/tv     # Montaje directo
+            type: Directory

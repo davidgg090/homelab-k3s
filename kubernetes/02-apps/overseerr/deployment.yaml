@@ -30,19 +30,6 @@ spec:
           volumeMounts:
             - name: overseerr-config
               mountPath: /config # Ruta donde Overseerr espera sus archivos de configuración
-          # (Opcional) Sondas de Liveness y Readiness
-          livenessProbe:
-            httpGet:
-              path: /api/v1/status # Endpoint de estado de Overseerr
-              port: http
-            initialDelaySeconds: 45 # Overseerr puede tardar un poco en iniciar la primera vez
-            periodSeconds: 20
-          readinessProbe:
-            httpGet:
-              path: /api/v1/status
-              port: http
-            initialDelaySeconds: 30
-            periodSeconds: 15
       volumes:
         - name: overseerr-config
           persistentVolumeClaim:

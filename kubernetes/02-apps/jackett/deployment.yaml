@@ -37,19 +37,6 @@ spec:
             - name: media-downloads # Jackett puede necesitar acceso a la carpeta de descargas para algunos indexers (blackhole)
               mountPath: /downloads
               subPath: downloads # Monta la subcarpeta 'downloads' del PVC 'homelab-media-pvc'
-          # (Opcional) Sondas de Liveness y Readiness
-          livenessProbe:
-            httpGet:
-              path: /UI/Dashboard # Un endpoint válido en la UI de Jackett
-              port: http
-            initialDelaySeconds: 30
-            periodSeconds: 20
-          readinessProbe:
-            httpGet:
-              path: /UI/Dashboard
-              port: http
-            initialDelaySeconds: 15
-            periodSeconds: 15
       volumes:
         - name: jackett-config
           persistentVolumeClaim:

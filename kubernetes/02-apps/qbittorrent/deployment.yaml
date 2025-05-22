@@ -8,7 +8,6 @@ metadata:
     app.kubernetes.io/name: qbittorrent
 spec:
   replicas: 1
-  # strategy: Recreate # Opcional: qBittorrent suele manejar bien RollingUpdate, pero Recreate es más simple si hay problemas.
   selector:
     matchLabels:
       app.kubernetes.io/name: qbittorrent
@@ -19,21 +18,14 @@ spec:
     spec:
       containers:
         - name: qbittorrent
-          image: lscr.io/linuxserver/qbittorrent:latest # O una versión específica
+          image: lscr.io/linuxserver/qbittorrent:latest
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
                 name: homelab-common-vars # Para PUID, PGID, TZ
           env:
-            - name: QB_WEBUI_PORT # Puerto interno para la WebUI dentro del contenedor
-              value: "8080" 
-            # La contraseña se inyectará como una variable de entorno real por Kubernetes
-            # pero la imagen de linuxserver/qbittorrent no la usa directamente de una variable QB_PASSWORD.
-            # La contraseña se establece en la UI o en el archivo de configuración.
-            # Lo que SÍ podemos hacer es usar el ConfigMap para otros ajustes si es necesario,
-            # o un script de inicio si quisiéramos automatizar el seteo de contraseña,
-            # pero para qBittorrent, es más común configurarlo vía UI o su archivo de config.
-            # El secret QB_PASSWORD lo recordaremos para configurar la UI manualmente la primera vez.
+            - name: QB_WEBUI_PORT
+              value: "8080"
           ports:
             - name: http-webui
               containerPort: 8080 # Coincide con QB_WEBUI_PORT
@@ -41,31 +33,31 @@ spec:
             - name: p2p-tcp # Puerto para conexiones TCP de torrents
               containerPort: 6881 # Puerto por defecto de qBittorrent
               protocol: TCP
-            - name: p2p-udp # Puerto para conexiones UDP de torrents (DHT, PeX, rastreadores UDP)
+            - name: p2p-udp # Puerto para conexiones UDP de torrents
               containerPort: 6881 # Puerto por defecto de qBittorrent
               protocol: UDP
           volumeMounts:
             - name: qbittorrent-config
               mountPath: /config # Ruta de configuración de qBittorrent
-            - name: media-downloads
-              mountPath: /downloads # Ruta donde qBittorrent guardará las descargas
-              subPath: downloads   # Monta la subcarpeta 'downloads' del PVC 'homelab-media-pvc'
-          # (Opcional) Sondas de Liveness y Readiness
-          livenessProbe:
-            tcpSocket: # Intenta conectar al puerto de la WebUI
-              port: http-webui
-            initialDelaySeconds: 30
-            periodSeconds: 15
-          readinessProbe:
-            httpGet: # Intenta obtener la página de login
-              path: /
-              port: http-webui
-            initialDelaySeconds: 15
-            periodSeconds: 10
+            - name: downloads-direct # Nuevo nombre para el volumeMount
+              mountPath: /downloads   # Sigue siendo /downloads dentro del contenedor
+          # (Sondas Comentadas Temporalmente)
+          # livenessProbe:
+          #   tcpSocket:
+          #     port: http-webui
+          #   initialDelaySeconds: 30
+          #   periodSeconds: 15
+          # readinessProbe:
+          #   httpGet:
+          #     path: / # O /login si existe
+          #     port: http-webui
+          #   initialDelaySeconds: 15
+          #   periodSeconds: 10
       volumes:
         - name: qbittorrent-config
           persistentVolumeClaim:
-            claimName: qbittorrent-config-pvc
-        - name: media-downloads
-          persistentVolumeClaim:
-            claimName: homelab-media-pvc # PVC global para medios (en /mnt/usbmedia)
+            claimName: qbittorrent-config-pvc # Usa el PVC local-path para la config
+        - name: downloads-direct # Coincide con el volumeMount
+          hostPath:
+            path: /mnt/usbmedia/downloads # Montaje directo a la subcarpeta de descargas en el USB
+            type: Directory # O DirectoryOrCreate si prefieres que K3s intente crearla

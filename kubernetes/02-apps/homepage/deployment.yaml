@@ -18,40 +18,32 @@ spec:
     spec:
       containers:
         - name: homepage
-          image: ghcr.io/gethomepage/homepage:latest # O una versión específica
+          image: ghcr.io/gethomepage/homepage:latest
           imagePullPolicy: IfNotPresent
-          # Homepage no necesita PUID/PGID o TZ generalmente, ya que sirve archivos estáticos y su config.
-          # Si hubiera problemas de permisos con el volumen de config, se podría añadir securityContext.
           ports:
             - name: http
-              containerPort: 3000 # Puerto por defecto de Homepage
+              containerPort: 3000
               protocol: TCP
+          env: # <-- AÑADIDO PARA SOLUCIONAR "Host validation failed"
+            - name: HOMEPAGE_ALLOWED_HOSTS
+              value: "home.homelab.local,192.168.1.81" # Ajusta 192.168.1.81 a la IP de tu nodo
           volumeMounts:
             - name: homepage-config
-              mountPath: /app/config # Ruta donde Homepage espera sus archivos de configuración
-            # Opcional: Si quieres montar el socket de Docker para el widget de Docker
-            # - name: docker-socket
-            #   mountPath: /var/run/docker.sock
-            #   readOnly: true
-          # (Opcional) Sondas de Liveness y Readiness
+              mountPath: /app/config
+          # Sondas (pueden permanecer si no dieron problemas, o comentarlas si lo hicieron)
           livenessProbe:
             httpGet:
-              path: / # La raíz debería ser suficiente
+              path: /
               port: http
             initialDelaySeconds: 20
             periodSeconds: 15
           readinessProbe:
             httpGet:
-              path: / # La raíz debería ser suficiente
+              path: /
               port: http
             initialDelaySeconds: 10
             periodSeconds: 10
       volumes:
         - name: homepage-config
           persistentVolumeClaim:
-            claimName: homepage-config-pvc # Referencia al PVC que creamos antes
-        # Opcional: Si montaste el socket de Docker
-        # - name: docker-socket
-        #   hostPath:
-        #     path: /var/run/docker.sock
-        #     type: Socket
+            claimName: homepage-config-pvc

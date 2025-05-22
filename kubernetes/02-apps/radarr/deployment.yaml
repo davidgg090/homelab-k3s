@@ -29,33 +29,20 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: radarr-config
-              mountPath: /config # Ruta de configuración de Radarr
-            - name: media-movies
-              mountPath: /movies # Ruta donde Radarr gestionará las películas
-              subPath: movies   # Monta la subcarpeta 'movies' del PVC 'homelab-media-pvc'
-            - name: media-downloads
-              mountPath: /downloads # Ruta donde Radarr buscará descargas completadas
-              subPath: downloads   # Monta la subcarpeta 'downloads' del PVC 'homelab-media-pvc'
-          # (Opcional) Sondas de Liveness y Readiness
-          livenessProbe:
-            httpGet:
-              path: /api/v3/system/status # Endpoint de API de Radarr
-              port: http
-            initialDelaySeconds: 45
-            periodSeconds: 20
-          readinessProbe:
-            httpGet:
-              path: /api/v3/system/status
-              port: http
-            initialDelaySeconds: 30
-            periodSeconds: 15
+              mountPath: /config
+            - name: media-movies-direct # Nuevo nombre para el volumeMount
+              mountPath: /movies        # Sigue siendo /movies dentro del contenedor
+            - name: media-downloads-direct # Nuevo nombre para el volumeMount
+              mountPath: /downloads
       volumes:
         - name: radarr-config
           persistentVolumeClaim:
             claimName: radarr-config-pvc
-        - name: media-movies
-          persistentVolumeClaim:
-            claimName: homelab-media-pvc # PVC global para medios (en /mnt/usbmedia)
-        - name: media-downloads
-          persistentVolumeClaim:
-            claimName: homelab-media-pvc # PVC global para medios (en /mnt/usbmedia)
+        - name: media-movies-direct # Coincide con el volumeMount
+          hostPath:
+            path: /mnt/usbmedia/movies # Montaje directo
+            type: Directory
+        - name: media-downloads-direct # Coincide con el volumeMount
+          hostPath:
+            path: /mnt/usbmedia/downloads # Montaje directo
+            type: Directory
