@@ -22,42 +22,42 @@ spec:
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: homelab-common-vars # Para PUID, PGID, TZ
+                name: homelab-common-vars 
           env:
             - name: QB_WEBUI_PORT
-              value: "8080"
+              value: "8080" 
           ports:
             - name: http-webui
-              containerPort: 8080 # Coincide con QB_WEBUI_PORT
+              containerPort: 8080 
               protocol: TCP
-            - name: p2p-tcp # Puerto para conexiones TCP de torrents
-              containerPort: 6881 # Puerto por defecto de qBittorrent
+            - name: p2p-tcp 
+              containerPort: 6881 
               protocol: TCP
-            - name: p2p-udp # Puerto para conexiones UDP de torrents
-              containerPort: 6881 # Puerto por defecto de qBittorrent
+            - name: p2p-udp 
+              containerPort: 6881 
               protocol: UDP
           volumeMounts:
             - name: qbittorrent-config
-              mountPath: /config # Ruta de configuración de qBittorrent
-            - name: downloads-direct # Nuevo nombre para el volumeMount
-              mountPath: /downloads   # Sigue siendo /downloads dentro del contenedor
-          # (Sondas Comentadas Temporalmente)
+              mountPath: /config 
+            - name: downloads-direct 
+              mountPath: /downloads   
+          # (Sondas Comentadas)
           # livenessProbe:
-          #   tcpSocket:
+          #   tcpSocket: 
           #     port: http-webui
           #   initialDelaySeconds: 30
           #   periodSeconds: 15
           # readinessProbe:
-          #   httpGet:
-          #     path: / # O /login si existe
+          #   httpGet: 
+          #     path: /
           #     port: http-webui
           #   initialDelaySeconds: 15
           #   periodSeconds: 10
       volumes:
         - name: qbittorrent-config
           persistentVolumeClaim:
-            claimName: qbittorrent-config-pvc # Usa el PVC local-path para la config
-        - name: downloads-direct # Coincide con el volumeMount
+            claimName: qbittorrent-config-pvc 
+        - name: downloads-direct 
           hostPath:
-            path: /mnt/usbmedia/downloads # Montaje directo a la subcarpeta de descargas en el USB
-            type: Directory # O DirectoryOrCreate si prefieres que K3s intente crearla
+            path: /mnt/usbmedia/downloads 
+            type: Directory

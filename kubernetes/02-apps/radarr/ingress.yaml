@@ -6,37 +6,18 @@ metadata:
   namespace: homelab
   labels:
     app.kubernetes.io/name: radarr
-  annotations:
-    kubernetes.io/ingress.class: "traefik"
-    # Opcional: para forzar HTTPS
-    # traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    # traefik.ingress.kubernetes.io/router.tls: "true"
-    # Radarr v4+ puede necesitar estas cabeceras si usas un basepath o proxy reverso (Traefik lo es)
-    traefik.ingress.kubernetes.io/router.middlewares: radarr-headers@kubernetescrd
+  # annotations: # Eliminada anotación middleware y kubernetes.io/ingress.class
 spec:
+  ingressClassName: traefik # Añadido/Corregido
   rules:
-    - host: radarr.homelab.local # El nombre de host que usarás
+    - host: radarr.homelab.local 
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: radarr # Nombre del Service
+                name: radarr 
                 port:
-                  name: http # Nombre del puerto en el Service
----
-# Middleware para Radarr para manejar correctamente el base path si es necesario
-# Aunque con path: / y host-based routing no suele ser estrictamente necesario
-# pero algunas apps *arr se benefician de saber que están tras un proxy.
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: radarr-headers
-  namespace: homelab
-spec:
-  headers:
-    customRequestHeaders:
-      X-Radarr-Host: "{{.Host}}"
-    # Opcional, si tuvieras problemas con el base path (no deberías con path: /)
-    # X-Radarr-BaseUrl: "/"
+                  name: http # O number: 7878
+# --- # Eliminada la definición del Middleware

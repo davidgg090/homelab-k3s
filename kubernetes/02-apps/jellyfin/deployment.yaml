@@ -22,14 +22,14 @@ spec:
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: homelab-common-vars # Para PUID, PGID, TZ
+                name: homelab-common-vars
           ports:
             - name: http
-              containerPort: 8096 # Puerto HTTP principal de Jellyfin
+              containerPort: 8096
               protocol: TCP
-            - name: dlna-http # Aunque en el service lo llamamos https-alt, este es el target
-              containerPort: 8920
-              protocol: TCP
+            - name: dlna-http 
+              containerPort: 8920 
+              protocol: TCP 
             - name: discovery-udp
               containerPort: 7359
               protocol: UDP
@@ -38,19 +38,17 @@ spec:
               protocol: UDP
           volumeMounts:
             - name: jellyfin-config
-              mountPath: /config # Ruta de configuración de Jellyfin
-            - name: media-movies-direct # Modificado
-              mountPath: /data/movies    # Donde Jellyfin buscará películas
-            - name: media-tv-direct     # Modificado
-              mountPath: /data/tvshows   # Donde Jellyfin buscará series
-            # (Opcional) Para transcodificación por hardware QSV
-            # - name: dev-dri
+              mountPath: /config
+            - name: media-movies-direct 
+              mountPath: /data/movies    
+            - name: media-tv-direct     
+              mountPath: /data/tvshows   
+            # - name: dev-dri 
             #   mountPath: /dev/dri
-          # (Sondas Comentadas Temporalmente)
-          # El endpoint /health de Jellyfin debería ser no autenticado, pero lo comentamos por ahora.
+          # (Sondas Comentadas)
           # livenessProbe:
           #   httpGet:
-          #     path: /health
+          #     path: /health 
           #     port: http
           #   initialDelaySeconds: 45
           #   periodSeconds: 20
@@ -60,23 +58,18 @@ spec:
           #     port: http
           #   initialDelaySeconds: 30
           #   periodSeconds: 15
-          # (Security Context para QSV si es necesario)
-          # securityContext:
-          #   privileged: true
       volumes:
         - name: jellyfin-config
           persistentVolumeClaim:
-            claimName: jellyfin-config-pvc # Usa local-path para la config
-        - name: media-movies-direct # Modificado
+            claimName: jellyfin-config-pvc
+        - name: media-movies-direct 
           hostPath:
-            path: /mnt/usbmedia/movies # Montaje directo
+            path: /mnt/usbmedia/movies
             type: Directory
-        - name: media-tv-direct     # Modificado
+        - name: media-tv-direct     
           hostPath:
-            path: /mnt/usbmedia/tv     # Montaje directo
+            path: /mnt/usbmedia/tv
             type: Directory
-        # (Opcional) Para transcodificación por hardware QSV
-        # - name: dev-dri
+        # - name: dev-dri 
         #   hostPath:
         #     path: /dev/dri
-        #     type: Directory # O el tipo correcto para el dispositivo

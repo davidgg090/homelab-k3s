@@ -6,21 +6,18 @@ metadata:
   namespace: homelab
   labels:
     app.kubernetes.io/name: plex
-  annotations:
-    kubernetes.io/ingress.class: "traefik"
-    # Para Plex, a menudo es necesario manejar conexiones de larga duración o websockets.
-    # Traefik suele manejarlos bien por defecto, pero si hay problemas:
-    # traefik.ingress.kubernetes.io/customrequestheaders: X-Forwarded-Proto":"https" # Si usas HTTPS y Plex se queja
-    # Para Ingress-Nginx, se usarían otras anotaciones para timeouts o websockets si fuera necesario.
+  # annotations: # Eliminada anotación kubernetes.io/ingress.class
+    # traefik.ingress.kubernetes.io/customrequestheaders: X-Forwarded-Proto":"https" # Puede quedarse si es necesaria
 spec:
+  ingressClassName: traefik # Añadido/Corregido
   rules:
-    - host: plex.homelab.local # El nombre de host que usarás
+    - host: plex.homelab.local 
       http:
         paths:
-          - path: / # Plex maneja sus propias subrutas como /web
+          - path: / 
             pathType: Prefix
             backend:
               service:
-                name: plex # Nombre del Service
+                name: plex 
                 port:
-                  name: http-plex # Puerto HTTP (32400) del Service
+                  name: http-plex # O number: 32400

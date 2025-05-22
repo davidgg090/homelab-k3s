@@ -24,16 +24,16 @@ spec:
             - name: http
               containerPort: 3000
               protocol: TCP
-          env: # <-- AÑADIDO PARA SOLUCIONAR "Host validation failed"
+          env: # <-- CAMBIO CLAVE QUE FUNCIONÓ
             - name: HOMEPAGE_ALLOWED_HOSTS
-              value: "home.homelab.local,192.168.1.81" # Ajusta 192.168.1.81 a la IP de tu nodo
+              value: "home.homelab.local,192.168.1.81" # Ajusta IP si es necesario
           volumeMounts:
             - name: homepage-config
               mountPath: /app/config
-          # Sondas (pueden permanecer si no dieron problemas, o comentarlas si lo hicieron)
+          # Sondas (estas funcionaban para Homepage, así que pueden quedarse)
           livenessProbe:
             httpGet:
-              path: /
+              path: / 
               port: http
             initialDelaySeconds: 20
             periodSeconds: 15

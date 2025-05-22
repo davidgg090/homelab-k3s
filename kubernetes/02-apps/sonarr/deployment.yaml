@@ -18,26 +18,26 @@ spec:
     spec:
       containers:
         - name: sonarr
-          image: lscr.io/linuxserver/sonarr:latest # O :preview / :develop si quieres probar versiones más nuevas
+          image: lscr.io/linuxserver/sonarr:latest 
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: homelab-common-vars # Para PUID, PGID, TZ
+                name: homelab-common-vars 
           ports:
             - name: http
-              containerPort: 8989 # Puerto por defecto de la UI de Sonarr
+              containerPort: 8989 
               protocol: TCP
           volumeMounts:
             - name: sonarr-config
-              mountPath: /config # Ruta de configuración de Sonarr
-            - name: media-tv-direct # Sonarr gestiona series - Nuevo nombre para el volumeMount
-              mountPath: /tv         # Sigue siendo /tv dentro del contenedor
-            - name: media-downloads-direct # Nuevo nombre para el volumeMount
-              mountPath: /downloads  # Sigue siendo /downloads dentro del contenedor
-          # (Sondas Comentadas Temporalmente)
+              mountPath: /config 
+            - name: media-tv-direct 
+              mountPath: /tv    
+            - name: media-downloads-direct
+              mountPath: /downloads 
+          # (Sondas Comentadas)
           # livenessProbe:
           #   httpGet:
-          #     path: /api/v3/system/status # Endpoint de API de Sonarr
+          #     path: /api/v3/system/status 
           #     port: http
           #   initialDelaySeconds: 45
           #   periodSeconds: 20
@@ -50,12 +50,12 @@ spec:
       volumes:
         - name: sonarr-config
           persistentVolumeClaim:
-            claimName: sonarr-config-pvc # Este usa local-path y debería estar bien
-        - name: media-tv-direct # Coincide con el volumeMount
+            claimName: sonarr-config-pvc
+        - name: media-tv-direct 
           hostPath:
-            path: /mnt/usbmedia/tv # Montaje directo a la subcarpeta de series en el USB
+            path: /mnt/usbmedia/tv 
             type: Directory
-        - name: media-downloads-direct # Coincide con el volumeMount
+        - name: media-downloads-direct
           hostPath:
-            path: /mnt/usbmedia/downloads # Montaje directo a la subcarpeta de descargas en el USB
+            path: /mnt/usbmedia/downloads 
             type: Directory

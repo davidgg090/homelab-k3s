@@ -6,20 +6,17 @@ metadata:
   namespace: homelab
   labels:
     app.kubernetes.io/name: bazarr
-  annotations:
-    kubernetes.io/ingress.class: "traefik" # Especifica que Traefik debe manejar este Ingress
-    # Opcional: para forzar HTTPS si tienes Traefik configurado para ello con cert-manager o certs globales
-    # traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    # traefik.ingress.kubernetes.io/router.tls: "true"
+  # annotations: # Eliminada anotación kubernetes.io/ingress.class
 spec:
+  ingressClassName: traefik # Añadido/Corregido
   rules:
-    - host: bazarr.homelab.local # El nombre de host que usarás para acceder a Bazarr
+    - host: bazarr.homelab.local 
       http:
         paths:
-          - path: / # Todo el tráfico para este host irá a Bazarr
+          - path: / 
             pathType: Prefix
             backend:
               service:
-                name: bazarr # Nombre del Service que creamos antes
+                name: bazarr 
                 port:
-                  name: http # Nombre del puerto en el Service (o el número 6767
+                  name: http # O number: 6767

@@ -7,21 +7,18 @@ metadata:
   labels:
     app.kubernetes.io/name: jellyfin
   annotations:
-    kubernetes.io/ingress.class: "traefik"
-    # Opcional: para forzar HTTPS
-    # traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    # traefik.ingress.kubernetes.io/router.tls: "true"
-    # Para Jellyfin, a veces es necesario permitir websockets
-    traefik.ingress.kubernetes.io/customrequestheaders: X-Forwarded-Proto":"https" # Si usas HTTPS y tienes problemas
+    # kubernetes.io/ingress.class: "traefik" # Eliminada o comentada
+    traefik.ingress.kubernetes.io/customrequestheaders: X-Forwarded-Proto":"https" # Puede quedarse si la necesitas
 spec:
+  ingressClassName: traefik # Añadido/Corregido
   rules:
-    - host: jellyfin.homelab.local # El nombre de host que usarás
+    - host: jellyfin.homelab.local 
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: jellyfin # Nombre del Service
+                name: jellyfin 
                 port:
-                  name: http # Puerto HTTP (8096) del Service
+                  name: http # O number: 8096

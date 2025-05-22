@@ -1,3 +1,4 @@
+# kubernetes/02-apps/plex/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -8,7 +9,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: Recreate
+    type: Recreate 
   selector:
     matchLabels:
       app.kubernetes.io/name: plex
@@ -19,40 +20,41 @@ spec:
     spec:
       containers:
         - name: plex
-          image: lscr.io/linuxserver/plex:latest
+          image: lscr.io/linuxserver/plex:latest 
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: homelab-common-vars
+                name: homelab-common-vars 
           env:
             - name: PLEX_CLAIM
               valueFrom:
                 secretKeyRef:
                   name: homelab-secrets
                   key: PLEX_CLAIM_TOKEN
-            - name: VERSION
-              value: "docker"
+            - name: VERSION 
+              value: "docker" 
           ports:
-            - name: http-plex
+            - name: http-plex 
               containerPort: 32400
-            # ... (otros puertos de Plex si los necesitas expuestos en el service)
+              protocol: TCP
+            # ... (otros puertos de Plex si los necesitas en el service) ...
           volumeMounts:
             - name: plex-config
-              mountPath: /config
-            - name: media-movies-direct # Modificado
+              mountPath: /config 
+            - name: media-movies-direct 
               mountPath: /data/movies
-            - name: media-tv-direct     # Modificado
+            - name: media-tv-direct     
               mountPath: /data/tvshows
-            # - name: transcode
-            #   mountPath: /transcode
-            # - name: dev-dri # Para QSV
-            #   mountPath: /dev/dri
-          # (Sondas Comentadas Temporalmente)
+            # - name: transcode 
+            #   mountPath: /transcode 
+            # - name: dev-dri
+            #   mountPath: /dev/dri   
+          # (Sondas Comentadas)
           # livenessProbe:
           #   httpGet:
-          #     path: /identity
+          #     path: /identity 
           #     port: http-plex
-          #   initialDelaySeconds: 60
+          #   initialDelaySeconds: 60 
           #   periodSeconds: 20
           #   timeoutSeconds: 10
           # readinessProbe:
@@ -62,24 +64,20 @@ spec:
           #   initialDelaySeconds: 45
           #   periodSeconds: 15
           #   timeoutSeconds: 5
-          # (Security Context para QSV si es necesario)
-          # securityContext:
-          #   privileged: true
       volumes:
         - name: plex-config
           persistentVolumeClaim:
-            claimName: plex-config-pvc # Usa local-path para la config
-        - name: media-movies-direct # Modificado
+            claimName: plex-config-pvc
+        - name: media-movies-direct 
           hostPath:
             path: /mnt/usbmedia/movies
             type: Directory
-        - name: media-tv-direct     # Modificado
+        - name: media-tv-direct     
           hostPath:
             path: /mnt/usbmedia/tv
             type: Directory
-        # - name: transcode
-        #   emptyDir: {}
-        # - name: dev-dri # Para QSV
+        # - name: transcode 
+        #   emptyDir: {} 
+        # - name: dev-dri
         #   hostPath:
         #     path: /dev/dri
-        #     type: Directory # O CharDevice si es un solo dispositivo

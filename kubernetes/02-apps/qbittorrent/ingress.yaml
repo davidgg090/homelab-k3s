@@ -6,20 +6,17 @@ metadata:
   namespace: homelab
   labels:
     app.kubernetes.io/name: qbittorrent
-  annotations:
-    kubernetes.io/ingress.class: "traefik"
-    # Opcional: para forzar HTTPS
-    # traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    # traefik.ingress.kubernetes.io/router.tls: "true"
+  # annotations: # Eliminada anotación kubernetes.io/ingress.class
 spec:
+  ingressClassName: traefik # Añadido/Corregido
   rules:
-    - host: qb.homelab.local # O qbittorrent.homelab.local, el que prefieras
+    - host: qb.homelab.local 
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: qbittorrent-webui # Nombre del Service para la WebUI
+                name: qbittorrent-webui 
                 port:
-                  name: http-webui # Nombre del puerto en el Service
+                  name: http-webui # O number: 8080

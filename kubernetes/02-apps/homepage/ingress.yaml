@@ -6,17 +6,17 @@ metadata:
   namespace: homelab
   labels:
     app.kubernetes.io/name: homepage
-  # annotations: # Eliminada la anotación kubernetes.io/ingress.class: "traefik"
+  # annotations: # Eliminada anotación kubernetes.io/ingress.class
 spec:
   ingressClassName: traefik # Añadido/Corregido
   rules:
-    - host: home.homelab.local
+    - host: home.homelab.local 
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: homepage
+                name: homepage 
                 port:
                   name: http # O number: 3000
