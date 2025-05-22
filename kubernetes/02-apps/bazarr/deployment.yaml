@@ -34,30 +34,15 @@ spec:
               mountPath: /movies
             - name: media-tv-direct     # Modificado
               mountPath: /tv
-          # (Sondas Comentadas Temporalmente)
-          # livenessProbe:
-          #   httpGet:
-          #     path: / # Bazarr no tiene un endpoint de health específico que yo sepa, la raíz suele funcionar
-          #     port: http
-          #   initialDelaySeconds: 30
-          #   periodSeconds: 15
-          #   timeoutSeconds: 5
-          # readinessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: http
-          #   initialDelaySeconds: 15
-          #   periodSeconds: 10
-          #   timeoutSeconds: 5
       volumes:
         - name: bazarr-config
           persistentVolumeClaim:
-            claimName: bazarr-config-pvc
+            claimName: bazarr-config-pvc # Usa local-path
         - name: media-movies-direct # Modificado
           hostPath:
-            path: /mnt/usbmedia/movies # Montaje directo
+            path: /mnt/usbmedia/movies
             type: Directory
         - name: media-tv-direct     # Modificado
           hostPath:
-            path: /mnt/usbmedia/tv     # Montaje directo
+            path: /mnt/usbmedia/tv
             type: Directory

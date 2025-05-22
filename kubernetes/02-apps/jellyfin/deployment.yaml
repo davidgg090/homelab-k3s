@@ -28,7 +28,7 @@ spec:
               containerPort: 8096 # Puerto HTTP principal de Jellyfin
               protocol: TCP
             - name: dlna-http # Aunque en el service lo llamamos https-alt, este es el target
-              containerPort: 8920 
+              containerPort: 8920
               protocol: TCP
             - name: discovery-udp
               containerPort: 7359
@@ -38,12 +38,11 @@ spec:
               protocol: UDP
           volumeMounts:
             - name: jellyfin-config
-              mountPath: /config
+              mountPath: /config # Ruta de configuración de Jellyfin
             - name: media-movies-direct # Modificado
-              mountPath: /data/movies
+              mountPath: /data/movies    # Donde Jellyfin buscará películas
             - name: media-tv-direct     # Modificado
-              mountPath: /data/tvshows
-          #
+              mountPath: /data/tvshows   # Donde Jellyfin buscará series
             # (Opcional) Para transcodificación por hardware QSV
             # - name: dev-dri
             #   mountPath: /dev/dri
@@ -51,7 +50,7 @@ spec:
           # El endpoint /health de Jellyfin debería ser no autenticado, pero lo comentamos por ahora.
           # livenessProbe:
           #   httpGet:
-          #     path: /health 
+          #     path: /health
           #     port: http
           #   initialDelaySeconds: 45
           #   periodSeconds: 20
@@ -67,14 +66,14 @@ spec:
       volumes:
         - name: jellyfin-config
           persistentVolumeClaim:
-            claimName: jellyfin-config-pvc
+            claimName: jellyfin-config-pvc # Usa local-path para la config
         - name: media-movies-direct # Modificado
           hostPath:
-            path: /mnt/usbmedia/movies
+            path: /mnt/usbmedia/movies # Montaje directo
             type: Directory
         - name: media-tv-direct     # Modificado
           hostPath:
-            path: /mnt/usbmedia/tv
+            path: /mnt/usbmedia/tv     # Montaje directo
             type: Directory
         # (Opcional) Para transcodificación por hardware QSV
         # - name: dev-dri
