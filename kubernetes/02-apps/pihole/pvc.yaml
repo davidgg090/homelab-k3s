@@ -1,0 +1,30 @@
+# kubernetes/02-apps/pihole/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pihole-config-pvc
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: pihole
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi # Suficiente para la configuración y logs de Pi-hole
+  storageClassName: local-path
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pihole-dnsmasq-pvc # Para configuraciones personalizadas de dnsmasq
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: pihole
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 512Mi 
+  storageClassName: local-path

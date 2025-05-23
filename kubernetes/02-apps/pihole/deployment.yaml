@@ -1,0 +1,94 @@
+# kubernetes/02-apps/pihole/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pihole
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: pihole
+spec:
+  replicas: 1 # Pi-hole no se escala horizontalmente fácilmente
+  strategy:
+    type: Recreate # Para evitar problemas con el estado al actualizar
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pihole
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pihole
+    spec:
+      # securityContext: # Pi-hole necesita algunas capacidades
+      #   sysctls:
+      #     - name: net.ipv4.ping_group_range
+      #       value: "0 2147483647"
+      containers:
+        - name: pihole
+          image: pihole/pihole:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-common-vars
+                  key: TZ
+            - name: WEBPASSWORD # ¡ESTABLECE UNA CONTRASEÑA SEGURA AQUÍ!
+              valueFrom:
+                secretKeyRef:
+                  name: homelab-secrets # Asume que añadirás PIHOLE_WEBPASSWORD a tus secretos
+                  key: PIHOLE_WEBPASSWORD 
+            - name: PIHOLE_DNS_ # Servidores DNS upstream que Pi-hole usará (ej. Cloudflare)
+              value: "1.1.1.1;1.0.0.1"
+            # - name: DNSMASQ_LISTENING # Podría ser necesario si hay conflictos o configuraciones avanzadas
+            #   value: "all"
+            - name: INTERFACE # Interfaz de red que Pi-hole usará para responder.
+                              # En K3s con CNI, esto puede ser complicado. A menudo se deja por defecto
+                              # o se ajusta si no responde correctamente.
+              value: "eth0" # Prueba con eth0, o déjalo sin definir para que Pi-hole intente autodetectar.
+                            # Si el pod usa la red del host, sería la interfaz del host.
+          ports:
+            - name: dns-tcp
+              containerPort: 53
+              protocol: TCP
+              hostPort: 53 # Enlaza el puerto 53/TCP del host al contenedor
+            - name: dns-udp
+              containerPort: 53
+              protocol: UDP
+              hostPort: 53 # Enlaza el puerto 53/UDP del host al contenedor
+            - name: http-webui
+              containerPort: 80 # Puerto HTTP estándar para la UI web de Pi-hole
+              protocol: TCP
+            # Pi-hole también puede usar el puerto 67/udp para DHCP si lo habilitas,
+            # pero no lo haremos aquí para simplificar.
+            # - name: dhcp
+            #   containerPort: 67
+            #   protocol: UDP
+            #   hostPort: 67
+          # capabilities: # Pi-hole podría necesitar NET_ADMIN si no se ejecuta como root o para ciertas funciones.
+          #   add:
+          #     - "NET_ADMIN"
+          volumeMounts:
+            - name: pihole-config-vol
+              mountPath: /etc/pihole
+            - name: pihole-dnsmasq-vol
+              mountPath: /etc/dnsmasq.d
+          # (Sondas Comentadas Temporalmente - Pi-hole tiene un endpoint /admin/api.php?status)
+          # livenessProbe:
+          #   httpGet:
+          #     path: /admin/api.php?status
+          #     port: http-webui
+          #   initialDelaySeconds: 120 # Pi-hole puede tardar en arrancar completamente
+          #   periodSeconds: 30
+          # readinessProbe:
+          #   httpGet:
+          #     path: /admin/api.php?status
+          #     port: http-webui
+          #   initialDelaySeconds: 60
+          #   periodSeconds: 15
+      volumes:
+        - name: pihole-config-vol
+          persistentVolumeClaim:
+            claimName: pihole-config-pvc
+        - name: pihole-dnsmasq-vol
+          persistentVolumeClaim:
+            claimName: pihole-dnsmasq-pvc

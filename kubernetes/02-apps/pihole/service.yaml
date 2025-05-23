@@ -1,0 +1,25 @@
+# kubernetes/02-apps/pihole/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: pihole
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: pihole
+spec:
+  type: ClusterIP # El acceso principal a DNS es vía hostPort, la UI vía Ingress
+  selector:
+    app.kubernetes.io/name: pihole
+  ports:
+    - name: dns-tcp
+      port: 53
+      targetPort: dns-tcp # Nombre del puerto en el Deployment
+      protocol: TCP
+    - name: dns-udp
+      port: 53
+      targetPort: dns-udp
+      protocol: UDP
+    - name: http-webui
+      port: 80 # Puerto que el servicio expone para la UI
+      targetPort: http-webui # Puerto del contenedor para la UI
+      protocol: TCP

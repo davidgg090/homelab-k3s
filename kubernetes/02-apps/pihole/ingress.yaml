@@ -1,0 +1,21 @@
+# kubernetes/02-apps/pihole/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pihole-ingress
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: pihole
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: pihole.homelab.local # O el subdominio que prefieras
+      http:
+        paths:
+          - path: / # Pi-hole espera ser accedido en la raíz del host
+            pathType: Prefix
+            backend:
+              service:
+                name: pihole
+                port:
+                  name: http-webui # Apunta al puerto 80 del servicio
