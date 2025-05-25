@@ -25,7 +25,14 @@ spec:
                 name: homelab-common-vars 
           env:
             - name: QB_WEBUI_PORT
-              value: "8080" 
+              value: "8080"
+            - name: WEBUI_USERNAME # Opcional, si quieres cambiar el usuario
+              value: "admin"      # O tu usuario deseado
+            - name: WEBUI_PASSWORD # Variable común para la contraseña de la UI en imágenes linuxserver
+              valueFrom:
+                secretKeyRef:
+                  name: homelab-secrets
+                  key: QB_PASSWORD
           ports:
             - name: http-webui
               containerPort: 8080 
