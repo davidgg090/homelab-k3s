@@ -80,3 +80,5 @@ charts/ # Si descargas charts aquí para inspección, pero no los modificas para
 dist/
 build/
 target/
+
+kubernetes/00-base/secrets.yaml

@@ -1,0 +1,15 @@
+# kubernetes/02-apps/postgres/pvc-local.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgresql-data-local-pvc # Nuevo nombre para el PVC
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: postgresql
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi # O el tamaño que necesites
+  storageClassName: local-path # Usará el provisionador por defecto de K3s en el SSD/disco local
