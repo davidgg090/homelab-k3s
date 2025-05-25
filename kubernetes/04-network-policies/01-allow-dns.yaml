@@ -2,54 +2,28 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-dns-homelab
+  name: allow-dns-homelab # O allow-dns-external-homelab si prefieres un nombre más específico
   namespace: homelab
 spec:
-  podSelector: {} # Aplica a todos los Pods en el namespace 'homelab'
+  podSelector: {} # Se aplica a todos los Pods en el namespace 'homelab'
   policyTypes:
     - Egress
   egress:
-    - to:
-        - namespaceSelector: # Selecciona el namespace donde está CoreDNS
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system # K3s usa labels diferentes, verificaremos
-                                                        # Usualmente, el namespace kube-system no tiene labels por defecto
-                                                        # que podamos usar fácilmente aquí.
-                                                        # Alternativamente, podemos seleccionar el pod de coredns directamente.
-        # Opción A: Seleccionar el namespace kube-system (necesita un label en el ns 'kube-system')
-        # Si añades manualmente un label como 'name: kube-system' al namespace 'kube-system':
-        # - namespaceSelector:
-        #     matchLabels:
-        #       name: kube-system
-        #   podSelector:
-        #     matchLabels:
-        #       k8s-app: kube-dns
-        # Opción B (Más simple si no quieres etiquetar namespaces): Permitir salida a cualquier IP en el puerto DNS
-        # Esto es menos restrictivo pero más fácil de configurar inicialmente.
-      ports:
+    - ports: # Permite el egreso a cualquier destino en estos puertos
         - protocol: UDP
           port: 53
-        - protocol: TCP # DNS también puede usar TCP
+        - protocol: TCP
           port: 53
-# -----
-# Versión más simple y común para DNS si no quieres etiquetar kube-system:
-# (Reemplaza el 'egress' de arriba con este si prefieres)
-# ---
-# apiVersion: networking.k8s.io/v1
-# kind: NetworkPolicy
-# metadata:
-#   name: allow-dns-simple-homelab
-#   namespace: homelab
-# spec:
-#   podSelector: {}
-#   policyTypes:
-#     - Egress
-#   egress:
-#     - ports:
-#         - protocol: UDP
-#           port: 53
-#         - protocol: TCP
-#           port: 53
-#       # No 'to' significa a cualquier destino en estos puertos.
-#       # Para mayor seguridad, podrías restringir 'to' al CIDR del clúster
-#       # o a la IP del servicio CoreDNS si es estática y conocida.
+      # Al no especificar un selector 'to' aquí, se permite el egreso a cualquier IP en estos puertos.
+      # Si quieres ser más restrictivo, podrías añadir un bloque 'to' con 'ipBlock'
+      # para especificar CIDRs permitidos, por ejemplo, para 1.1.1.1 y 1.0.0.1.
+      # Ejemplo para IPs específicas:
+      # to:
+      #   - ipBlock:
+      #       cidr: 1.1.1.1/32
+      #   - ipBlock:
+      #       cidr: 1.0.0.1/32
+      #   - ipBlock: # Añade otros servidores DNS que Pi-hole podría usar, ej., los de Google
+      #       cidr: 8.8.8.8/32
+      #   - ipBlock:
+      #       cidr: 8.8.4.4/32
