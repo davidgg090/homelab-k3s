@@ -16,7 +16,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain # IMPORTANTE: Si borras el PVC, el PV y sus datos NO se borran. Debes borrar el PV manualmente si quieres liberar los datos.
   storageClassName: homelab-hostpath # Un nombre de clase de almacenamiento personalizado para que los PVCs puedan solicitar específicamente este tipo de PV.
   hostPath:
-    path: "/mnt/usbmedia" # La ruta en tu servidor Mini PC donde está montado el disco USB
+    path: "/mnt/lab/media" # La ruta en tu servidor Mini PC donde está montado el disco USB
     type: Directory # Asegura que la ruta es un directorio
 ---
 apiVersion: v1
@@ -35,7 +35,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: homelab-hostpath # Puede ser la misma clase o una diferente si quieres más granularidad
   hostPath:
-    path: "/mnt/homelab_config/databases/postgresql"
+    path: "/mnt/lab/configs/postgres"
     type: DirectoryOrCreate # K3s intentará crear el directorio si no existe (aunque ya lo creamos manualmente)
 ---
 apiVersion: v1
@@ -54,7 +54,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: homelab-hostpath
   hostPath:
-    path: "/mnt/homelab_config/databases/mongodb"
+    path: "/mnt/lab/configs/mongo"
     type: DirectoryOrCreate
 ---
 apiVersion: v1
@@ -73,7 +73,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: homelab-hostpath
   hostPath:
-    path: "/mnt/homelab_config/registry-data"
+    path: "/mnt/lab/configs/registry-data"
     type: DirectoryOrCreate
 # ---
 # Si decidiste usar hostPath para datos de monitoreo, añádelos aquí también:

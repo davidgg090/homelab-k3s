@@ -53,7 +53,7 @@ spec:
             claimName: radarr-config-pvc
         - name: media-movies-direct 
           hostPath:
-            path: /mnt/usbmedia/movies 
+            path: /mnt/lab/media/movies 
             type: Directory
         - name: media-downloads-direct
           hostPath:

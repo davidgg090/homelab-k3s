@@ -55,9 +55,9 @@ spec:
             claimName: bazarr-config-pvc
         - name: media-movies-direct # Modificado
           hostPath:
-            path: /mnt/usbmedia/movies # Montaje directo
+            path: /mnt/lab/media/movies # Montaje directo
             type: Directory
         - name: media-tv-direct     # Modificado
           hostPath:
-            path: /mnt/usbmedia/tv     # Montaje directo
+            path: /mnt/lab/media/tv     # Montaje directo
             type: Directory

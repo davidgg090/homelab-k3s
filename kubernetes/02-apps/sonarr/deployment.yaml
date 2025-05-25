@@ -53,7 +53,7 @@ spec:
             claimName: sonarr-config-pvc
         - name: media-tv-direct 
           hostPath:
-            path: /mnt/usbmedia/tv 
+            path: /mnt/lab/media/tv 
             type: Directory
         - name: media-downloads-direct
           hostPath:

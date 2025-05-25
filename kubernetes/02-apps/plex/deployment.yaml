@@ -70,11 +70,11 @@ spec:
             claimName: plex-config-pvc
         - name: media-movies-direct 
           hostPath:
-            path: /mnt/usbmedia/movies
+            path: /mnt/lab/media/movies
             type: Directory
         - name: media-tv-direct     
           hostPath:
-            path: /mnt/usbmedia/tv
+            path: /mnt/lab/media/tv
             type: Directory
         # - name: transcode 
         #   emptyDir: {} 
