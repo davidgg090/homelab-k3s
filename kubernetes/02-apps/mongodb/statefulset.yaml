@@ -69,7 +69,7 @@ spec:
       volumes: # Esta sección es importante si NO usas volumeClaimTemplates
         - name: mongodb-data
           persistentVolumeClaim:
-            claimName: homelab-mongo-data-pvc # Referencia al PVC que creamos en 01-storage/
+            claimName: mongodb-data-local-pvc  # Referencia al PVC que creamos en 01-storage/
   # (Alternativa a 'volumes' arriba si quisieras que el StatefulSet gestione la creación de PVCs)
   # No lo usaremos aquí porque ya creamos un PVC global, pero para referencia:
   # volumeClaimTemplates:

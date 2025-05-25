@@ -1,0 +1,15 @@
+# kubernetes/02-apps/mongodb/pvc-local.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-data-local-pvc # Nombre distintivo para este nuevo PVC
+  namespace: homelab
+  labels:
+    app.kubernetes.io/name: mongodb
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi # O el tamaño que consideres adecuado para tus datos de MongoDB
+  storageClassName: local-path # Importante: usa el almacenamiento local de K3s
