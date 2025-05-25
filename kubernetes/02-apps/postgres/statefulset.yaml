@@ -79,4 +79,4 @@ spec:
       volumes: # Usamos 'volumes' para referenciar nuestro PVC preexistente
         - name: postgresql-data
           persistentVolumeClaim:
-            claimName: homelab-postgres-data-pvc # Referencia al PVC que creamos en 01-storage/
+            claimName: postgresql-data-local-pvc # Referencia al PVC que creamos en 01-storage/
