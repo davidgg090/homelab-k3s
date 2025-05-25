@@ -57,5 +57,5 @@ spec:
             type: Directory
         - name: media-downloads-direct
           hostPath:
-            path: /mnt/usbmedia/downloads 
+            path: /mnt/lab/media/downloads 
             type: Directory
