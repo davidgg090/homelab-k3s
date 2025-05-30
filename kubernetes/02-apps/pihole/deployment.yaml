@@ -86,6 +86,9 @@ spec:
               - SETFCAP
               - CHOWN
               - DAC_OVERRIDE
+              - SETGID
+              - SETUID
+              - FOWNER
           resources:
             requests:
               memory: "128Mi"
