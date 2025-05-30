@@ -1,0 +1,18 @@
+# kubernetes/02-apps/overrides/linuxserver-security-override.yaml
+# Override de seguridad para todas las imágenes LinuxServer
+# Estas imágenes requieren ejecutarse como root para s6-overlay
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: linuxserver-security-context
+  namespace: homelab
+data:
+  info: |
+    LinuxServer images require:
+    - runAsNonRoot: false
+    - runAsUser: 0
+    - Specific capabilities for s6-overlay
+    
+    This is by design and cannot be changed without breaking the images.
+    The images handle user permissions internally via PUID/PGID environment variables.
