@@ -9,7 +9,10 @@ metadata:
 spec:
   replicas: 1 # Pi-hole no se escala horizontalmente fácilmente
   strategy:
-    type: Recreate # Para evitar problemas con el estado al actualizar
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: pihole
@@ -17,14 +20,19 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: pihole
+        app.kubernetes.io/instance: pihole-prod
+        app.kubernetes.io/version: "2023.11"
+        app.kubernetes.io/component: dns-server
+        app.kubernetes.io/part-of: homelab
+        app.kubernetes.io/managed-by: kubectl
     spec:
-      # securityContext: # Pi-hole necesita algunas capacidades
-      #   sysctls:
-      #     - name: net.ipv4.ping_group_range
-      #       value: "0 2147483647"
+      securityContext:
+        sysctls:
+        - name: net.ipv4.ping_group_range
+          value: "0 2147483647"
       containers:
         - name: pihole
-          image: pihole/pihole:latest
+          image: pihole/pihole:2023.11
           imagePullPolicy: IfNotPresent
           env:
             - name: TZ
@@ -64,27 +72,50 @@ spec:
             #   containerPort: 67
             #   protocol: UDP
             #   hostPort: 67
-          # capabilities: # Pi-hole podría necesitar NET_ADMIN si no se ejecuta como root o para ciertas funciones.
-          #   add:
-          #     - "NET_ADMIN"
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
+              drop:
+              - ALL
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
           volumeMounts:
             - name: pihole-config-vol
               mountPath: /etc/pihole
             - name: pihole-dnsmasq-vol
               mountPath: /etc/dnsmasq.d
-          # (Sondas Comentadas Temporalmente - Pi-hole tiene un endpoint /admin/api.php?status)
-          # livenessProbe:
-          #   httpGet:
-          #     path: /admin/api.php?status
-          #     port: http-webui
-          #   initialDelaySeconds: 120 # Pi-hole puede tardar en arrancar completamente
-          #   periodSeconds: 30
-          # readinessProbe:
-          #   httpGet:
-          #     path: /admin/api.php?status
-          #     port: http-webui
-          #   initialDelaySeconds: 60
-          #   periodSeconds: 15
+          startupProbe:
+            httpGet:
+              path: /admin/api.php?status
+              port: http-webui
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /admin/api.php?status
+              port: http-webui
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /admin/api.php?status
+              port: http-webui
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
       volumes:
         - name: pihole-config-vol
           persistentVolumeClaim:

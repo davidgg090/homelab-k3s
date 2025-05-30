@@ -16,16 +16,20 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: mongodb
+        app.kubernetes.io/instance: mongodb-prod
+        app.kubernetes.io/version: "7.0"
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: homelab
+        app.kubernetes.io/managed-by: kubectl
     spec:
-      # No es común necesitar PUID/PGID para la imagen oficial de MongoDB,
-      # ya que maneja sus propios permisos internos en su volumen de datos.
-      # Si usaras una imagen personalizada o tuvieras problemas de permisos en el hostPath PV,
-      # podrías necesitar un securityContext:
-      # securityContext:
-      #   fsGroup: A_GROUP_ID_THAT_HAS_ACCESS_TO_THE_PV_PATH # Ej. 1000
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999  # Usuario mongodb en la imagen oficial
+        runAsGroup: 999
+        fsGroup: 999
       containers:
         - name: mongodb
-          image: mongo:latest # O una versión específica, ej: mongo:6.0
+          image: mongo:7.0
           imagePullPolicy: IfNotPresent
           env:
             - name: MONGO_INITDB_ROOT_USERNAME
@@ -45,7 +49,19 @@ spec:
           volumeMounts:
             - name: mongodb-data
               mountPath: /data/db # Directorio donde MongoDB almacena sus datos
-          # (Opcional) Sondas de Liveness y Readiness para MongoDB
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+              - ALL
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
           livenessProbe:
             exec:
               command:

@@ -8,6 +8,11 @@ metadata:
     app.kubernetes.io/name: qbittorrent
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: qbittorrent
@@ -15,10 +20,20 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: qbittorrent
+        app.kubernetes.io/instance: qbittorrent-prod
+        app.kubernetes.io/version: "4.6.0"
+        app.kubernetes.io/component: download-client
+        app.kubernetes.io/part-of: homelab
+        app.kubernetes.io/managed-by: kubectl
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
         - name: qbittorrent
-          image: lscr.io/linuxserver/qbittorrent:latest
+          image: lscr.io/linuxserver/qbittorrent:4.6.0
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
@@ -47,19 +62,35 @@ spec:
             - name: qbittorrent-config
               mountPath: /config 
             - name: downloads-direct 
-              mountPath: /downloads   
-          # (Sondas Comentadas)
-          # livenessProbe:
-          #   tcpSocket: 
-          #     port: http-webui
-          #   initialDelaySeconds: 30
-          #   periodSeconds: 15
-          # readinessProbe:
-          #   httpGet: 
-          #     path: /
-          #     port: http-webui
-          #   initialDelaySeconds: 15
-          #   periodSeconds: 10
+              mountPath: /downloads
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+              - ALL
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            tcpSocket:
+              port: http-webui
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http-webui
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
       volumes:
         - name: qbittorrent-config
           persistentVolumeClaim:

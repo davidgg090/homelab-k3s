@@ -16,14 +16,20 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: postgresql
+        app.kubernetes.io/instance: postgresql-prod
+        app.kubernetes.io/version: "16.0"
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: homelab
+        app.kubernetes.io/managed-by: kubectl
     spec:
-      # La imagen oficial de postgres maneja bien sus permisos internos.
-      # Si tuvieras problemas de permisos con el hostPath PV, considera un securityContext:
-      # securityContext:
-      #   fsGroup: 26 # El GID que usa postgres dentro del contenedor oficial, o el GID 1000 si el hostPath lo necesita
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999  # Usuario postgres en la imagen oficial
+        runAsGroup: 999
+        fsGroup: 999
       containers:
         - name: postgresql
-          image: postgres:16 # O la versión más reciente que prefieras, ej: postgres:15, postgres:latest
+          image: postgres:16.0
           imagePullPolicy: IfNotPresent
           env:
             - name: POSTGRES_USER
@@ -51,7 +57,19 @@ spec:
           volumeMounts:
             - name: postgresql-data
               mountPath: /var/lib/postgresql/data # Directorio donde PostgreSQL almacena sus datos
-          # (Opcional) Sondas de Liveness y Readiness para PostgreSQL
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+              - ALL
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
           livenessProbe:
             exec:
               command:

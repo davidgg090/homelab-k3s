@@ -1,153 +1,468 @@
-# Home Lab en Kubernetes (K3s) 🦀
+# 🏠 Homelab K3s - Stack de Medios Automatizado
 
-Este repositorio contiene los manifiestos de Kubernetes y la configuración para desplegar mi Home Lab personal en un clúster K3s de un solo nodo, ejecutándose en un Mini PC con Ubuntu Server. El objetivo es tener un entorno de servicios auto-alojados robusto, gestionado de forma declarativa y con la posibilidad de CI/CD.
+<div align="center">
 
-## ✨ Servicios Desplegados
+[![Kubernetes](https://img.shields.io/badge/kubernetes-v1.28-blue?style=for-the-badge&logo=kubernetes)](https://kubernetes.io/)
+[![K3s](https://img.shields.io/badge/k3s-lightweight-orange?style=for-the-badge&logo=k3s)](https://k3s.io/)
+[![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
 
-Actualmente, este repositorio configura los siguientes servicios:
+Un homelab robusto y automatizado para gestión de medios, construido con Kubernetes y siguiendo las mejores prácticas de seguridad y DevOps.
 
-* **Gestión de Medios:**
-    * Plex Media Server
-    * Jellyfin
-    * Sonarr (Gestor de Series)
-    * Radarr (Gestor de Películas)
-    * Bazarr (Gestor de Subtítulos)
-    * Overseerr (Solicitudes de Medios)
-* **Descargas:**
-    * qBittorrent (Cliente BitTorrent)
-    * Jackett (Proxy de Indexadores)
-* **Bases de Datos:**
-    * PostgreSQL
-    * MongoDB
-* **Utilidades y Panel de Control:**
-    * Homepage (Panel de control personalizable)
-    * Docker Registry (Registro Docker local privado)
-* **Monitoreo:**
-    * Prometheus (Recolección de métricas)
-    * Grafana (Visualización de métricas y dashboards)
-* **Gestión del Clúster:**
-    * Traefik (Ingress Controller por defecto en K3s)
-    * K9s (Recomendado para gestión vía terminal)
+</div>
 
-##  Architectural Overview
+## 📋 Tabla de Contenidos
 
-* **Orquestador:** K3s en un Mini PC con Ubuntu Server.
-* **Almacenamiento Persistente:**
-    * **Medios:** Disco Duro USB externo montado en `/mnt/usbmedia` en el host, accedido vía `hostPath` PersistentVolumes.
-    * **Configuraciones y Bases de Datos:**
-        * Algunas configuraciones críticas y bases de datos usan `hostPath` PersistentVolumes en el SSD interno del Mini PC (bajo `/mnt/homelab_config`).
-        * Otras configuraciones de aplicaciones usan `PersistentVolumeClaim` con el `StorageClass` `local-path` de K3s (almacenadas en `/var/lib/rancher/k3s/storage/` en el SSD interno).
-* **Acceso a Servicios:**
-    * Los servicios web se exponen a la red local a través de Traefik Ingress, usando nombres de host locales (ej. `plex.homelab.local`). Se requiere configuración de DNS local.
-    * Algunos servicios (como qBittorrent P2P) usan `NodePort` para exposición directa.
-* **Seguridad:**
-    * Firewall UFW configurado en el servidor host.
-    * NetworkPolicies para controlar el tráfico entre Pods dentro del clúster.
+- [Vista General](#-vista-general)
+- [Stack de Aplicaciones](#-stack-de-aplicaciones)
+- [Arquitectura](#-arquitectura)
+- [Características](#-características)
+- [Requisitos](#-requisitos)
+- [Instalación](#-instalación)
+- [Configuración](#-configuración)
+- [Uso](#-uso)
+- [Monitoreo](#-monitoreo)
+- [Seguridad](#-seguridad)
+- [Mantenimiento](#-mantenimiento)
+- [Troubleshooting](#-troubleshooting)
 
-## 🚀 Requisitos Previos del Servidor Host
+## 🎯 Vista General
 
-Antes de desplegar los manifiestos de este repositorio, el servidor host (Mini PC con Ubuntu Server) debe estar configurado de la siguiente manera:
+Este proyecto implementa un **homelab completo** basado en K3s (Kubernetes ligero) que automatiza la descarga, organización y streaming de contenido multimedia. Está diseñado para ejecutarse en hardware modesto (Mini PC) mientras mantiene características empresariales como alta disponibilidad, monitoreo y seguridad.
 
-1.  **Ubuntu Server LTS** instalado.
-2.  **Acceso SSH** configurado (preferiblemente con llaves).
-3.  **IP Estática** o reserva DHCP para el servidor.
-4.  **Disco Duro USB para Medios:** Montado automáticamente en `/mnt/usbmedia` vía `/etc/fstab` (usando UUID).
-5.  **Directorios para `hostPath` PVs Creados:**
-    * `/mnt/usbmedia` (con subcarpetas `tv`, `movies`, `downloads`)
-    * `/mnt/homelab_config` (con subcarpetas `databases/postgresql`, `databases/mongodb`, `registry-data`, etc.)
-    * Permisos y propiedad de estos directorios establecidos para el PUID/PGID `1000:1000` (o el que se use en los manifiestos).
-6.  **K3s Instalado:**
-    ```bash
-    curl -sfL [https://get.k3s.io](https://get.k3s.io) | INSTALL_K3S_EXEC="--disable=servicelb" sh -s -
-    ```
-7.  **`kubectl` Configurado** para el usuario no root.
-8.  **Firewall (UFW) Configurado** para permitir SSH, Traefik (80, 443) y los NodePorts necesarios desde la red local.
-9.  **(Opcional) Configuración de K3s para Registro Inseguro:** Si se usa el Docker Registry local, `/etc/rancher/k3s/registries.yaml` debe estar configurado.
-10. **(Opcional) Helm v3 Instalado** si se va a desplegar `kube-prometheus-stack` manualmente desde el servidor.
+### ¿Por qué este proyecto?
 
-## 📁 Estructura del Repositorio
+- **Automatización completa**: Desde la solicitud hasta el streaming
+- **Gestión declarativa**: Todo como código (GitOps ready)
+- **Seguridad first**: SecurityContext, Network Policies, gestión de secretos
+- **Monitoreo integrado**: Prometheus + Grafana preconfigurados
+- **Fácil mantenimiento**: Updates sin downtime, backups automatizables
 
-* `.github/workflows/`: Contiene los flujos de trabajo de GitHub Actions para CI/CD.
-* `kubernetes/`: Directorio principal para todos los manifiestos de Kubernetes.
-    * `00-base/`: Namespace, ConfigMap común, plantilla de Secrets.
-    * `01-storage/`: PersistentVolumes (`hostPath`) y PersistentVolumeClaims globales.
-    * `02-apps/`: Subdirectorios para cada aplicación, conteniendo sus Deployments, Services, Ingresses, y PVCs específicos.
-    * `03-monitoring/`: Configuración para `kube-prometheus-stack` (values.yaml).
-    * `04-network-policies/`: Políticas de Red para el namespace `homelab`.
-    * `kustomization.yaml`: (Opcional) Para despliegues con `kubectl apply -k .`.
-* `.gitignore`: Especifica los archivos que Git debe ignorar.
-* `README.md`: Este archivo.
+## 🚀 Stack de Aplicaciones
 
-## 🛠️ Despliegue Manual Inicial
+### 🎬 Gestión de Medios
+- **[Plex](https://www.plex.tv/)** / **[Jellyfin](https://jellyfin.org/)**: Servidores de streaming multimedia
+- **[Sonarr](https://sonarr.tv/)**: Automatización de series de TV
+- **[Radarr](https://radarr.video/)**: Automatización de películas
+- **[Bazarr](https://www.bazarr.media/)**: Gestión automática de subtítulos
+- **[Overseerr](https://overseerr.dev/)**: Portal de solicitudes de contenido
 
-1.  **Clonar el Repositorio en el Servidor K3s:**
-    ```bash
-    git clone [https://github.com/TU_USUARIO_GITHUB/TU_REPOSITORIO.git](https://github.com/TU_USUARIO_GITHUB/TU_REPOSITORIO.git)
-    cd TU_REPOSITORIO/kubernetes/
-    ```
-2.  **Preparar Secretos:**
-    * Copia `00-base/secrets.template.yaml` a `00-base/secrets.yaml`.
-    * Edita `00-base/secrets.yaml` y **reemplaza todos los placeholders con tus contraseñas y tokens reales.** ¡No hagas commit de este archivo con secretos reales!
-3.  **Aplicar Manifiestos en Orden:**
-    * **Base:**
-        ```bash
-        kubectl apply -f 00-base/namespace.yaml
-        kubectl apply -f 00-base/common-configmap.yaml
-        kubectl apply -f 00-base/secrets.yaml # ¡El que tiene los secretos reales!
-        ```
-    * **Almacenamiento:**
-        ```bash
-        kubectl apply -f 01-storage/hostpath-pvs.yaml
-        kubectl apply -f 01-storage/global-pvcs.yaml
-        # Aplicar PVCs específicos de aplicaciones (ej. kubernetes/02-apps/plex/pvc.yaml, etc.)
-        find kubernetes/02-apps -name 'pvc.yaml' -exec kubectl apply -f {} \;
-        ```
-        Verifica: `kubectl get pvc -n homelab` (deben estar `Bound`).
-    * **(Crítico) Copiar Datos de Configuración Existentes:** Si estás migrando, este es el momento de copiar tus datos de configuración a las rutas físicas de los PVCs `local-path` (en `/var/lib/rancher/k3s/storage/...`).
-    * **Aplicaciones:**
-        ```bash
-        kubectl apply -R -f 02-apps/ # Aplica recursivamente todo en 02-apps
-        ```
-    * **Políticas de Red (¡Con Cuidado!):**
-        Aplica primero las políticas de permiso:
-        ```bash
-        kubectl apply -f 04-network-policies/01-allow-dns.yaml
-        kubectl apply -f 04-network-policies/02-allow-ingress-traffic.yaml
-        kubectl apply -f 04-network-policies/03-app-to-app-communication.yaml
-        kubectl apply -f 04-network-policies/04-allow-monitoring.yaml
-        ```
-        Verifica la comunicación. Luego, si todo está bien:
-        ```bash
-        kubectl apply -f 04-network-policies/00-default-deny-all.yaml
-        ```
-    * **Monitoreo (Helm):**
-        ```bash
-        # Asegúrate que el namespace monitoring exista o usa --create-namespace
-        kubectl apply -f 03-monitoring/namespace.yaml 
-        helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
-          --namespace monitoring \
-          -f 03-monitoring/kube-prometheus-stack-values.yaml \
-          --atomic
-        ```
-4.  **Configurar DNS Local:**
-    Asegúrate de que los hosts definidos en tus Ingresses (ej. `plex.homelab.local`) resuelvan a la IP de tu servidor K3s.
+### 📥 Descargas
+- **[qBittorrent](https://www.qbittorrent.org/)**: Cliente BitTorrent con WebUI
+- **[Jackett](https://github.com/Jackett/Jackett)**: Proxy de indexadores de torrents
 
-## 🔄 CI/CD con GitHub Actions (Visión General)
+### 💾 Bases de Datos
+- **[PostgreSQL](https://www.postgresql.org/)**: Base de datos relacional
+- **[MongoDB](https://www.mongodb.com/)**: Base de datos NoSQL
+- **[pgAdmin](https://www.pgadmin.org/)**: Administración web para PostgreSQL
+- **[Mongo Express](https://github.com/mongo-express/mongo-express)**: Administración web para MongoDB
 
-El archivo `.github/workflows/deploy.yaml` (aún por crear en detalle) tiene como objetivo automatizar el despliegue:
-1.  Se activa en un `push` a la rama `main`.
-2.  Utiliza un **self-hosted runner** en el servidor K3s.
-3.  Extrae el código.
-4.  Prepara el archivo `secrets.yaml` usando **GitHub Secrets**.
-5.  Configura `kubectl` usando un `kubeconfig` almacenado como un GitHub Secret.
-6.  Aplica los manifiestos (ej. `kubectl apply -k kubernetes/` o aplicando directorios específicos).
+### 🛠️ Utilidades
+- **[Homepage](https://gethomepage.dev/)**: Dashboard personalizable
+- **[Pi-hole](https://pi-hole.net/)**: Bloqueador de anuncios a nivel DNS
+- **Docker Registry**: Registro privado de imágenes
 
-## 🔧 Mantenimiento y Actualizaciones
+### 📊 Monitoreo
+- **[Prometheus](https://prometheus.io/)**: Recolección de métricas
+- **[Grafana](https://grafana.com/)**: Visualización y dashboards
+- **Node Exporter**: Métricas del sistema
+- **kube-state-metrics**: Métricas de Kubernetes
 
-* **Aplicaciones:** Actualiza las etiquetas de imagen en los archivos `deployment.yaml` o `statefulset.yaml` y haz `git push`. CI/CD debería aplicar los cambios. Manualmente: `kubectl rollout restart deployment <nombre-deployment> -n homelab`.
-* **K3s:** Sigue la documentación oficial de K3s para actualizaciones.
-* **Helm Charts:** Usa `helm upgrade` con el archivo de valores actualizado.
+## 🏗️ Arquitectura
 
-## 💡 Contribuciones y Mejoras
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Internet                              │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+┌────────────────────────┴────────────────────────────────────┐
+│                    Router/Firewall                           │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+┌────────────────────────┴────────────────────────────────────┐
+│                 Mini PC (Ubuntu Server)                      │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │                      K3s Cluster                        │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │ │
+│  │  │   Traefik   │  │ Media Stack │  │  Databases  │   │ │
+│  │  │  (Ingress)  │  │ Plex/Sonarr │  │ PostgreSQL  │   │ │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘   │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │ │
+│  │  │ Monitoring  │  │  Downloads  │  │  Utilities  │   │ │
+│  │  │ Prometheus  │  │ qBittorrent │  │  Homepage   │   │ │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘   │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                             │                                │
+│  ┌──────────────────────────┴──────────────────────────┐   │
+│  │              Storage Layer                           │   │
+│  │  ┌─────────────┐        ┌────────────────────┐     │   │
+│  │  │ SSD Internal│        │ USB External Drive │     │   │
+│  │  │ /configs    │        │ /media (1TB)       │     │   │
+│  │  └─────────────┘        └────────────────────┘     │   │
+│  └──────────────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────┘
+```
 
-¡Este es un proyecto personal, pero las sugerencias son bienvenidas! (Opcional, si planeas hacerlo público).
+### 🔧 Componentes Clave
+
+- **K3s**: Distribución ligera de Kubernetes
+- **Traefik**: Ingress controller (incluido en K3s)
+- **Local Path Provisioner**: Almacenamiento dinámico
+- **CoreDNS**: Resolución DNS interna
+- **Containerd**: Runtime de contenedores
+
+## ✨ Características
+
+### 🔒 Seguridad
+- ✅ **SecurityContext** en todos los contenedores
+- ✅ **Network Policies** con enfoque zero-trust
+- ✅ **RBAC** configurado
+- ✅ Gestión segura de secretos
+- ✅ Contenedores ejecutándose como non-root
+- ✅ Capacidades mínimas (drop ALL)
+
+### 📈 Alta Disponibilidad
+- ✅ **PodDisruptionBudgets** para servicios críticos
+- ✅ **Health checks** (liveness, readiness, startup probes)
+- ✅ Estrategias de deployment sin downtime
+- ✅ Gestión de recursos (requests/limits)
+
+### 🔍 Observabilidad
+- ✅ Monitoreo completo con Prometheus
+- ✅ Dashboards preconstruidos en Grafana
+- ✅ Alertas configurables
+- ✅ Logs centralizados
+- ✅ Métricas de aplicación y sistema
+
+### 🚀 DevOps
+- ✅ GitOps ready
+- ✅ CI/CD con GitHub Actions
+- ✅ Versionado de imágenes
+- ✅ Rollback automático
+- ✅ Configuración declarativa
+
+## 📋 Requisitos
+
+### Hardware Mínimo
+- **CPU**: 4 cores (Intel i3/i5 o equivalente)
+- **RAM**: 8GB (16GB recomendado)
+- **Almacenamiento**: 
+  - SSD 128GB para sistema y configuraciones
+  - HDD/SSD 1TB+ para contenido multimedia
+- **Red**: Ethernet Gigabit
+
+### Software
+- **OS**: Ubuntu Server 22.04 LTS
+- **K3s**: v1.28+
+- **kubectl**: v1.28+
+- **Helm**: v3.12+ (para Prometheus stack)
+- **Git**: Para gestión de código
+
+## 🛠️ Instalación
+
+### 1. Preparación del Sistema
+
+```bash
+# Actualizar sistema
+sudo apt update && sudo apt upgrade -y
+
+# Instalar dependencias
+sudo apt install -y curl wget git htop iotop
+
+# Configurar IP estática (editar netplan)
+sudo nano /etc/netplan/00-installer-config.yaml
+```
+
+### 2. Configurar Almacenamiento
+
+```bash
+# Crear directorios
+sudo mkdir -p /mnt/lab/media/{movies,tv,downloads}
+sudo mkdir -p /mnt/lab/config/{databases,apps}
+
+# Montar disco USB (encontrar UUID con: sudo blkid)
+echo "UUID=tu-uuid /mnt/lab/media ext4 defaults,nofail 0 2" | sudo tee -a /etc/fstab
+
+# Establecer permisos
+sudo chown -R 1000:1000 /mnt/lab
+sudo chmod -R 755 /mnt/lab
+```
+
+### 3. Instalar K3s
+
+```bash
+# Instalar K3s sin ServiceLB (usaremos NodePort)
+curl -sfL https://get.k3s.io | sh -
+
+# Configurar kubectl para usuario no-root
+mkdir -p ~/.kube
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown $USER:$USER ~/.kube/config
+chmod 600 ~/.kube/config
+
+# Verificar instalación
+kubectl get nodes
+```
+
+### 4. Clonar y Configurar el Proyecto
+
+```bash
+# Clonar repositorio
+git clone https://github.com/tu-usuario/homelab-k3s.git
+cd homelab-k3s
+
+# Copiar y editar secretos
+cp kubernetes/00-base/secrets-improved.template.yaml kubernetes/00-base/secrets.yaml
+# Editar con tus valores reales
+nano kubernetes/00-base/secrets.yaml
+```
+
+### 5. Desplegar Stack
+
+```bash
+# Aplicar configuración base
+kubectl apply -f kubernetes/00-base/
+
+# Aplicar almacenamiento
+kubectl apply -f kubernetes/01-storage/
+
+# Aplicar aplicaciones
+kubectl apply -f kubernetes/02-apps/
+
+# Aplicar PodDisruptionBudgets
+kubectl apply -f kubernetes/02-apps/pdbs/
+
+# Aplicar políticas de red (con cuidado)
+kubectl apply -f kubernetes/04-network-policies/01-allow-dns.yaml
+kubectl apply -f kubernetes/04-network-policies/02-allow-ingress-traffic.yaml
+kubectl apply -f kubernetes/04-network-policies/03-app-to-app-communication.yaml
+# Verificar conectividad antes de aplicar:
+kubectl apply -f kubernetes/04-network-policies/00-default-deny-all.yaml
+```
+
+### 6. Instalar Stack de Monitoreo
+
+```bash
+# Agregar repositorio Helm
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+# Instalar kube-prometheus-stack
+kubectl create namespace monitoring
+helm install prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  -f kubernetes/03-monitoring/kube-prometheus-stack-values.yaml
+```
+
+## ⚙️ Configuración
+
+### DNS Local
+
+Agrega estas entradas a tu servidor DNS o archivo hosts:
+
+```
+192.168.1.X plex.homelab.local
+192.168.1.X jellyfin.homelab.local
+192.168.1.X sonarr.homelab.local
+192.168.1.X radarr.homelab.local
+192.168.1.X overseerr.homelab.local
+192.168.1.X homepage.homelab.local
+192.168.1.X grafana.homelab.local
+192.168.1.X pgadmin.homelab.local
+192.168.1.X mongo-express.homelab.local
+```
+
+### Configuración de Aplicaciones
+
+#### Sonarr/Radarr
+1. Accede a `http://sonarr.homelab.local`
+2. Configura indexadores (Jackett)
+3. Configura cliente de descarga (qBittorrent)
+4. Añade carpetas de medios
+
+#### qBittorrent
+1. Accede a `http://qbittorrent.homelab.local:30080`
+2. Usuario: `admin`
+3. Contraseña: La configurada en secrets
+
+#### Plex
+1. Accede a `http://plex.homelab.local`
+2. Reclama el servidor con tu cuenta
+3. Añade bibliotecas apuntando a `/data/movies` y `/data/tvshows`
+
+## 📊 Uso
+
+### Flujo de Trabajo
+
+1. **Solicitud**: Usuario solicita contenido en Overseerr
+2. **Búsqueda**: Sonarr/Radarr buscan en indexadores vía Jackett
+3. **Descarga**: qBittorrent descarga el contenido
+4. **Organización**: Sonarr/Radarr mueven y renombran archivos
+5. **Subtítulos**: Bazarr descarga subtítulos automáticamente
+6. **Streaming**: Plex/Jellyfin sirven el contenido
+
+### Acceso a Servicios
+
+| Servicio | URL | Puerto |
+|----------|-----|--------|
+| Plex | http://plex.homelab.local | 80 |
+| Jellyfin | http://jellyfin.homelab.local | 80 |
+| Sonarr | http://sonarr.homelab.local | 80 |
+| Radarr | http://radarr.homelab.local | 80 |
+| Overseerr | http://overseerr.homelab.local | 80 |
+| qBittorrent | NodePort | 30080 |
+| Homepage | http://homepage.homelab.local | 80 |
+| Grafana | http://grafana.homelab.local | 80 |
+| pgAdmin | http://pgadmin.homelab.local | 80 |
+| Mongo Express | http://mongo-express.homelab.local | 80 |
+
+## 📈 Monitoreo
+
+### Dashboards Disponibles
+
+- **Cluster Overview**: Estado general del cluster
+- **Node Metrics**: CPU, memoria, disco, red
+- **Pod Metrics**: Recursos por pod
+- **Application Metrics**: Métricas específicas de aplicación
+
+### Alertas Configuradas
+
+- Alta utilización de CPU/memoria
+- Pods en estado CrashLoopBackOff
+- PVC casi llenos
+- Nodos no disponibles
+
+## 🔒 Seguridad
+
+### Mejores Prácticas Implementadas
+
+1. **Principio de Menor Privilegio**
+   - Contenedores ejecutándose como non-root
+   - Capacidades eliminadas (drop ALL)
+   - ReadOnlyRootFilesystem donde es posible
+
+2. **Network Policies**
+   - Default deny all
+   - Reglas explícitas para comunicación necesaria
+   - Separación de namespaces
+
+3. **Gestión de Secretos**
+   - Secretos en Kubernetes Secrets
+   - Valores en base64
+   - Nunca commiteados en Git
+
+4. **Actualizaciones**
+   - Imágenes con versiones específicas
+   - Actualizaciones controladas
+   - Rollback automático si falla
+
+## 🔧 Mantenimiento
+
+### Actualizaciones de Aplicaciones
+
+```bash
+# Actualizar imagen en deployment
+kubectl set image deployment/plex plex=lscr.io/linuxserver/plex:1.40.1 -n homelab
+
+# O editar el archivo y aplicar
+kubectl apply -f kubernetes/02-apps/plex/deployment.yaml
+```
+
+### Backup
+
+```bash
+# Backup de configuraciones
+kubectl get all,pvc,pv,secrets,configmaps -n homelab -o yaml > backup-homelab.yaml
+
+# Backup de datos (ejemplo con rsync)
+rsync -avz /mnt/lab/config/ /backup/location/
+```
+
+### Monitoreo de Recursos
+
+```bash
+# Ver uso de recursos
+kubectl top nodes
+kubectl top pods -n homelab
+
+# Ver logs
+kubectl logs -n homelab deployment/sonarr
+
+# Describir pod problemático
+kubectl describe pod -n homelab <pod-name>
+```
+
+## 🐛 Troubleshooting
+
+### Problemas Comunes
+
+**Pod en CrashLoopBackOff**
+```bash
+# Ver logs del pod
+kubectl logs -n homelab <pod-name> --previous
+
+# Verificar eventos
+kubectl get events -n homelab --sort-by='.lastTimestamp'
+```
+
+**PVC no se enlaza**
+```bash
+# Verificar PV disponibles
+kubectl get pv
+
+# Verificar StorageClass
+kubectl get storageclass
+```
+
+**No se puede acceder a servicio**
+```bash
+# Verificar ingress
+kubectl get ingress -n homelab
+
+# Verificar servicio
+kubectl get svc -n homelab
+
+# Test DNS interno
+kubectl run test-pod --image=busybox -it --rm -- nslookup plex.homelab.svc.cluster.local
+```
+
+### Comandos Útiles
+
+```bash
+# Reiniciar deployment
+kubectl rollout restart deployment/<app> -n homelab
+
+# Ver historial de rollout
+kubectl rollout history deployment/<app> -n homelab
+
+# Rollback a versión anterior
+kubectl rollout undo deployment/<app> -n homelab
+
+# Ejecutar shell en pod
+kubectl exec -it -n homelab <pod-name> -- /bin/bash
+```
+
+## 📝 Contribuciones
+
+¡Las contribuciones son bienvenidas! Por favor:
+
+1. Fork el proyecto
+2. Crea tu feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la branch (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
+
+## 🙏 Agradecimientos
+
+- Comunidad K3s y Kubernetes
+- Desarrolladores de todas las aplicaciones incluidas
+- Comunidad r/selfhosted y r/homelab
+
+---
+
+<div align="center">
+Made with ❤️ for the homelab community
+</div>

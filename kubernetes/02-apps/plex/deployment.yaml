@@ -9,7 +9,10 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: Recreate 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: plex
@@ -17,10 +20,20 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: plex
+        app.kubernetes.io/instance: plex-prod
+        app.kubernetes.io/version: "1.40.0"
+        app.kubernetes.io/component: media-server
+        app.kubernetes.io/part-of: homelab
+        app.kubernetes.io/managed-by: kubectl
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
         - name: plex
-          image: lscr.io/linuxserver/plex:latest 
+          image: lscr.io/linuxserver/plex:1.40.0 
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
@@ -48,22 +61,44 @@ spec:
             # - name: transcode 
             #   mountPath: /transcode 
             # - name: dev-dri
-            #   mountPath: /dev/dri   
-          # (Sondas Comentadas)
-          # livenessProbe:
-          #   httpGet:
-          #     path: /identity 
-          #     port: http-plex
-          #   initialDelaySeconds: 60 
-          #   periodSeconds: 20
-          #   timeoutSeconds: 10
-          # readinessProbe:
-          #   httpGet:
-          #     path: /identity
-          #     port: http-plex
-          #   initialDelaySeconds: 45
-          #   periodSeconds: 15
-          #   timeoutSeconds: 5
+            #   mountPath: /dev/dri
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+              - ALL
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+          startupProbe:
+            httpGet:
+              path: /identity
+              port: http-plex
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /identity
+              port: http-plex
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /identity
+              port: http-plex
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
       volumes:
         - name: plex-config
           persistentVolumeClaim:
