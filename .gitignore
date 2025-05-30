@@ -82,3 +82,4 @@ build/
 target/
 
 kubernetes/00-base/secrets.yaml
+.claude
