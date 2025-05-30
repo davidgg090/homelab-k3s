@@ -63,13 +63,55 @@ spec:
         - protocol: TCP
           port: 9117 # Puerto de Jackett
 ---
+# INGRESS: Permite que Overseerr acceda a Radarr
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-overseerr-to-arrs # Overseerr necesita acceder a Radarr y Sonarr
+  name: allow-overseerr-to-radarr-ingress
   namespace: homelab
 spec:
-  # Esta política permite a Overseerr ENVIAR tráfico (Egress)
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: radarr
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: overseerr
+      ports:
+        - protocol: TCP
+          port: 7878
+---
+# INGRESS: Permite que Overseerr acceda a Sonarr
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-overseerr-to-sonarr-ingress
+  namespace: homelab
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sonarr
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: overseerr
+      ports:
+        - protocol: TCP
+          port: 8989
+---
+# EGRESS: Permite a Overseerr enviar tráfico a Radarr y Sonarr
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-overseerr-to-arrs-egress
+  namespace: homelab
+spec:
   podSelector: 
     matchLabels:
       app.kubernetes.io/name: overseerr
@@ -82,14 +124,14 @@ spec:
               app.kubernetes.io/name: radarr
       ports:
         - protocol: TCP
-          port: 7878 # Puerto de Radarr
+          port: 7878
     - to: # A Sonarr
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: sonarr
       ports:
         - protocol: TCP
-          port: 8989 # Puerto de Sonarr
+          port: 8989
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

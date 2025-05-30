@@ -1,0 +1,193 @@
+# kubernetes/04-network-policies/07-allow-media-stack-communication.yaml
+# Permite comunicación adicional entre componentes del stack de medios
+---
+# Overseerr → Plex (para verificar bibliotecas)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-overseerr-to-plex
+  namespace: homelab
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: plex
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: overseerr
+      ports:
+        - protocol: TCP
+          port: 32400
+---
+# Overseerr → Jellyfin
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-overseerr-to-jellyfin
+  namespace: homelab
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: jellyfin
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: overseerr
+      ports:
+        - protocol: TCP
+          port: 8096
+---
+# Bazarr → Radarr (para gestión de subtítulos de películas)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-bazarr-to-radarr
+  namespace: homelab
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: radarr
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: bazarr
+      ports:
+        - protocol: TCP
+          port: 7878
+---
+# Bazarr → Sonarr (para gestión de subtítulos de series)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-bazarr-to-sonarr
+  namespace: homelab
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sonarr
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: bazarr
+      ports:
+        - protocol: TCP
+          port: 8989
+---
+# Bazarr egress a Radarr/Sonarr
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-bazarr-egress-to-arrs
+  namespace: homelab
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: bazarr
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: radarr
+      ports:
+        - protocol: TCP
+          port: 7878
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: sonarr
+      ports:
+        - protocol: TCP
+          port: 8989
+    - to:  # DNS
+        - podSelector: {}
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# Homepage → Todas las aplicaciones (para mostrar estado)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-homepage-egress
+  namespace: homelab
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: homepage
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector: {}  # Puede acceder a todos los pods en homelab
+      ports:
+        - protocol: TCP
+          port: 80
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 8096
+        - protocol: TCP
+          port: 32400
+        - protocol: TCP
+          port: 7878
+        - protocol: TCP
+          port: 8989
+        - protocol: TCP
+          port: 9117
+        - protocol: TCP
+          port: 6767
+        - protocol: TCP
+          port: 5055
+    - to:  # DNS
+        - podSelector: {}
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# Overseerr egress adicional a Plex/Jellyfin
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-overseerr-egress-media-servers
+  namespace: homelab
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: overseerr
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: plex
+      ports:
+        - protocol: TCP
+          port: 32400
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: jellyfin
+      ports:
+        - protocol: TCP
+          port: 8096

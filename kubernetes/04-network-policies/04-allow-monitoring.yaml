@@ -1,0 +1,27 @@
+# kubernetes/04-network-policies/04-allow-monitoring.yaml
+# Permite que Prometheus scrape métricas de todos los pods
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scraping
+  namespace: homelab
+spec:
+  podSelector: {}  # Aplica a todos los pods en homelab
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - protocol: TCP
+          port: 9090  # Puerto estándar de métricas
+        - protocol: TCP
+          port: 8080  # Puerto alternativo común
+        - protocol: TCP
+          port: 80    # Algunas apps exponen métricas en puerto HTTP
