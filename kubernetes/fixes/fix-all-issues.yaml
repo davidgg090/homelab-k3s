@@ -1,0 +1,245 @@
+# kubernetes/fixes/fix-all-issues.yaml
+# Soluciones para todos los problemas encontrados
+---
+# Fix para todas las imágenes LinuxServer (necesitan root para s6-overlay)
+# Plex
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: homelab
+spec:
+  template:
+    spec:
+      containers:
+      - name: plex
+        image: lscr.io/linuxserver/plex:latest
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+            - KILL
+            - FOWNER
+---
+# Jellyfin
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin
+  namespace: homelab
+spec:
+  template:
+    spec:
+      containers:
+      - name: jellyfin
+        image: lscr.io/linuxserver/jellyfin:latest
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+            - KILL
+            - FOWNER
+---
+# qBittorrent
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+  namespace: homelab
+spec:
+  template:
+    spec:
+      containers:
+      - name: qbittorrent
+        image: lscr.io/linuxserver/qbittorrent:latest
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+            - KILL
+            - FOWNER
+---
+# Sonarr
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  namespace: homelab
+spec:
+  template:
+    spec:
+      containers:
+      - name: sonarr
+        image: lscr.io/linuxserver/sonarr:latest
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+            - KILL
+            - FOWNER
+---
+# Radarr - corregir imagen
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+  namespace: homelab
+spec:
+  template:
+    spec:
+      containers:
+      - name: radarr
+        image: lscr.io/linuxserver/radarr:latest  # Volver a latest
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+            - KILL
+            - FOWNER
+---
+# pgAdmin - necesita ajustes específicos
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin
+  namespace: homelab
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsUser: 5050
+        runAsGroup: 5050
+        fsGroup: 5050
+      containers:
+      - name: pgadmin
+        image: dpage/pgadmin4:latest
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 5050
+          runAsGroup: 5050
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+# Bazarr también necesita los mismos permisos
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bazarr
+  namespace: homelab
+spec:
+  template:
+    spec:
+      containers:
+      - name: bazarr
+        image: lscr.io/linuxserver/bazarr:latest
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+            - KILL
+            - FOWNER
+---
+# Jackett
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jackett
+  namespace: homelab
+spec:
+  template:
+    spec:
+      containers:
+      - name: jackett
+        image: lscr.io/linuxserver/jackett:latest
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+            - KILL
+            - FOWNER
+---
+# Overseerr
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overseerr
+  namespace: homelab
+spec:
+  template:
+    spec:
+      containers:
+      - name: overseerr
+        image: lscr.io/linuxserver/overseerr:latest
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+            - KILL
+            - FOWNER

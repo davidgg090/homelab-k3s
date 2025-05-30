@@ -1,0 +1,181 @@
+# kubernetes/fixes/fix-deployments.yaml
+# Correcciones para los deployments con problemas
+---
+# Fix Plex - LinuxServer images esperan PUID/PGID
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: homelab
+spec:
+  template:
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: plex
+        image: lscr.io/linuxserver/plex:latest  # Volver a latest temporalmente
+        securityContext:
+          runAsNonRoot: false  # LinuxServer necesita esto
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+---
+# Fix Jellyfin
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin
+  namespace: homelab
+spec:
+  template:
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: jellyfin
+        image: lscr.io/linuxserver/jellyfin:latest
+        securityContext:
+          runAsNonRoot: false
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+---
+# Fix qBittorrent
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+  namespace: homelab
+spec:
+  template:
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: qbittorrent
+        image: lscr.io/linuxserver/qbittorrent:latest
+        securityContext:
+          runAsNonRoot: false
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+---
+# Fix Sonarr
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  namespace: homelab
+spec:
+  template:
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: sonarr
+        image: lscr.io/linuxserver/sonarr:latest
+        securityContext:
+          runAsNonRoot: false
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+---
+# Fix Radarr
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+  namespace: homelab
+spec:
+  template:
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: radarr
+        image: lscr.io/linuxserver/radarr:latest
+        securityContext:
+          runAsNonRoot: false
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+---
+# Fix MongoDB - necesita usuario 999
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: homelab
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+      - name: mongodb
+        image: mongo:7
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 999
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+---
+# Fix pgAdmin
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin
+  namespace: homelab
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsUser: 5050
+        runAsGroup: 5050
+        fsGroup: 5050
+      containers:
+      - name: pgadmin
+        image: dpage/pgadmin4:latest
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 5050
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL

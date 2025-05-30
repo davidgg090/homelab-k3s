@@ -1,0 +1,27 @@
+# kubernetes/fixes/fix-mongodb.yaml
+# MongoDB necesita volver a la versión 8 o limpiar datos
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: homelab
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+      - name: mongodb
+        image: mongo:latest  # Volver a latest (8.0) ya que los datos esperan esa versión
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 999
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
