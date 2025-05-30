@@ -103,7 +103,7 @@ spec:
               mountPath: /etc/dnsmasq.d
           startupProbe:
             httpGet:
-              path: /admin/api.php?status
+              path: /admin/
               port: http-webui
             initialDelaySeconds: 0
             periodSeconds: 10
@@ -111,7 +111,7 @@ spec:
             failureThreshold: 30
           livenessProbe:
             httpGet:
-              path: /admin/api.php?status
+              path: /admin/
               port: http-webui
             initialDelaySeconds: 120
             periodSeconds: 30
@@ -119,7 +119,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /admin/api.php?status
+              path: /admin/
               port: http-webui
             initialDelaySeconds: 60
             periodSeconds: 15
