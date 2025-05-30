@@ -27,12 +27,13 @@ spec:
         app.kubernetes.io/managed-by: kubectl
     spec:
       securityContext:
+        fsGroup: 1000
         sysctls:
         - name: net.ipv4.ping_group_range
           value: "0 2147483647"
       containers:
         - name: pihole
-          image: pihole/pihole:2023.11
+          image: pihole/pihole:latest
           imagePullPolicy: IfNotPresent
           env:
             - name: TZ
@@ -73,13 +74,18 @@ spec:
             #   protocol: UDP
             #   hostPort: 67
           securityContext:
+            allowPrivilegeEscalation: true
+            runAsNonRoot: false
+            runAsUser: 0
             capabilities:
-              add:
-              - NET_ADMIN
               drop:
               - ALL
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+              add:
+              - NET_ADMIN
+              - NET_BIND_SERVICE
+              - SETFCAP
+              - CHOWN
+              - DAC_OVERRIDE
           resources:
             requests:
               memory: "128Mi"
