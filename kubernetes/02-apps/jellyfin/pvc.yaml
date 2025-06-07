@@ -12,4 +12,4 @@ spec:
   resources:
     requests:
       storage: 200Gi # Ajusta según el tamaño de tu biblioteca. Los metadatos (imágenes, nfo) pueden ocupar bastante.
-  storageClassName: local-path # Usará el provisionador por defecto de K3s
+  storageClassName: homelab-hostpath # Usará el provisionador por defecto de K3s

@@ -12,4 +12,4 @@ spec:
   resources:
     requests:
       storage: 2Gi # Similar a Radarr, la config no es enorme pero la BD puede crecer.
-  storageClassName: local-path # Usará el provisionador por defecto de K3s
+  storageClassName: homelab-hostpath # Usará el provisionador por defecto de K3s

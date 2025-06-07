@@ -12,4 +12,4 @@ spec:
   resources:
     requests:
       storage: 1Gi # La configuración de Overseerr no suele ser muy grande
-  storageClassName: local-path # Usará el provisionador por defecto de K3s
+  storageClassName: homelab-hostpath # Usará el provisionador por defecto de K3s

@@ -9,7 +9,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path
+  storageClassName: homelab-hostpath
   resources:
     requests:
       storage: 1Gi
