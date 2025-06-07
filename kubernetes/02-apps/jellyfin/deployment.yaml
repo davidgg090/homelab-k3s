@@ -27,9 +27,6 @@ spec:
         app.kubernetes.io/managed-by: kubectl
     spec:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
         fsGroup: 1000
       containers:
         - name: jellyfin
@@ -61,11 +58,17 @@ spec:
             # - name: dev-dri 
             #   mountPath: /dev/dri
           securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: true
+            runAsNonRoot: false
+            runAsUser: 0
             capabilities:
               drop:
               - ALL
+              add:
+              - CHOWN
+              - DAC_OVERRIDE
+              - SETGID
+              - SETUID
           resources:
             requests:
               memory: "1Gi"

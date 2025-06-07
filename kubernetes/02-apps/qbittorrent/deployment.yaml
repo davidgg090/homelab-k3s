@@ -27,9 +27,6 @@ spec:
         app.kubernetes.io/managed-by: kubectl
     spec:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
         fsGroup: 1000
       containers:
         - name: qbittorrent
@@ -64,11 +61,17 @@ spec:
             - name: downloads-direct 
               mountPath: /downloads
           securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: true
+            runAsNonRoot: false
+            runAsUser: 0
             capabilities:
               drop:
               - ALL
+              add:
+              - CHOWN
+              - DAC_OVERRIDE
+              - SETGID
+              - SETUID
           resources:
             requests:
               memory: "512Mi"
