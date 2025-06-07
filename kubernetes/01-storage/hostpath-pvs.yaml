@@ -35,7 +35,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: homelab-hostpath # Puede ser la misma clase o una diferente si quieres más granularidad
   hostPath:
-    path: "/mnt/storage2tb/homelab/databases/postgres"
+    path: "/var/lib/homelab/databases/postgres"
     type: DirectoryOrCreate # K3s intentará crear el directorio si no existe (aunque ya lo creamos manualmente)
 ---
 apiVersion: v1
@@ -54,7 +54,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: homelab-hostpath
   hostPath:
-    path: "/mnt/storage2tb/homelab/databases/mongodb"
+    path: "/var/lib/homelab/databases/mongodb"
     type: DirectoryOrCreate
 ---
 apiVersion: v1
