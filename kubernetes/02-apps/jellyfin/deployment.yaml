@@ -106,11 +106,11 @@ spec:
             claimName: jellyfin-config-pvc
         - name: media-movies-direct 
           hostPath:
-            path: /mnt/lab/media/movies
+            path: /mnt/storage2tb/homelab/media/movies
             type: Directory
         - name: media-tv-direct     
           hostPath:
-            path: /mnt/lab/media/tv
+            path: /mnt/storage2tb/homelab/media/tv
             type: Directory
         # - name: dev-dri 
         #   hostPath:

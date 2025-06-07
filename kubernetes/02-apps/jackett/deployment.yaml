@@ -51,5 +51,5 @@ spec:
             claimName: jackett-config-pvc 
         - name: media-downloads-direct # Modificado
           hostPath:
-            path: /mnt/lab/media/downloads 
+            path: /mnt/storage2tb/homelab/media/downloads 
             type: Directory

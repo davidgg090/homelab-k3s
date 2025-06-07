@@ -87,9 +87,9 @@ spec:
             claimName: radarr-config-pvc
         - name: media-movies-direct 
           hostPath:
-            path: /mnt/lab/media/movies 
+            path: /mnt/storage2tb/homelab/media/movies 
             type: Directory
         - name: media-downloads-direct
           hostPath:
-            path: /mnt/lab/media/downloads 
+            path: /mnt/storage2tb/homelab/media/downloads 
             type: Directory
