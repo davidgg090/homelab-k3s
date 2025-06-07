@@ -1,0 +1,211 @@
+# kubernetes/01-storage/app-config-pvs.yaml
+# PersistentVolumes para configuraciones de aplicaciones
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-plex-config-pv
+  labels:
+    type: hostpath
+    app: plex
+spec:
+  capacity:
+    storage: 100Gi  # Igual que el PVC original
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/storage2tb/homelab/config/plex"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-jellyfin-config-pv
+  labels:
+    type: hostpath
+    app: jellyfin
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/storage2tb/homelab/config/jellyfin"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-sonarr-config-pv
+  labels:
+    type: hostpath
+    app: sonarr
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/storage2tb/homelab/config/sonarr"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-radarr-config-pv
+  labels:
+    type: hostpath
+    app: radarr
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/storage2tb/homelab/config/radarr"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-bazarr-config-pv
+  labels:
+    type: hostpath
+    app: bazarr
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/storage2tb/homelab/config/bazarr"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-overseerr-config-pv
+  labels:
+    type: hostpath
+    app: overseerr
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/storage2tb/homelab/config/overseerr"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-qbittorrent-config-pv
+  labels:
+    type: hostpath
+    app: qbittorrent
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/storage2tb/homelab/config/qbittorrent"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-jackett-config-pv
+  labels:
+    type: hostpath
+    app: jackett
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/storage2tb/homelab/config/jackett"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-homepage-config-pv
+  labels:
+    type: hostpath
+    app: homepage
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/storage2tb/homelab/config/homepage"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-pihole-config-pv
+  labels:
+    type: hostpath
+    app: pihole
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/storage2tb/homelab/config/pihole"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-pgadmin-config-pv
+  labels:
+    type: hostpath
+    app: pgadmin
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/mnt/storage2tb/homelab/config/pgadmin"
+    type: DirectoryOrCreate
