@@ -27,10 +27,10 @@ spec:
         app.kubernetes.io/managed-by: kubectl
     spec:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 5050
-        runAsGroup: 5050
-        fsGroup: 5050
+        runAsNonRoot: false
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
       containers:
       - name: pgadmin
         image: dpage/pgadmin4:8.0
