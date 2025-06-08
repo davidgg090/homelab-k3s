@@ -53,11 +53,12 @@ spec:
         - name: pgadmin-data
           mountPath: /var/lib/pgadmin
         securityContext:
-          allowPrivilegeEscalation: false
+          allowPrivilegeEscalation: true
           readOnlyRootFilesystem: false
+          privileged: true
           capabilities:
-            drop:
-            - ALL
+            add:
+            - SYS_ADMIN
         resources:
           requests:
             memory: "256Mi"
