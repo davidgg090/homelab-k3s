@@ -1,0 +1,20 @@
+# kubernetes/01-storage/pgadmin-ssd-pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: homelab-pgadmin-ssd-pv
+  labels:
+    type: hostpath
+    app: pgadmin
+    location: ssd
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: homelab-hostpath
+  hostPath:
+    path: "/var/lib/homelab/apps/pgadmin"
+    type: DirectoryOrCreate
